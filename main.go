@@ -1,33 +1,26 @@
 package main
 
 import (
+	"log"
+	"net/http"
+	"os"
+
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
 	"golang.org/x/oauth2"
 	"golang.org/x/oauth2/google"
 	"google.golang.org/api/books/v1"
-	"log"
-	"net/http"
-	"os"
 )
 
-var (
-	// Menu texts
-	firstMenu  = "<b>Menu 1</b>\n\nA beautiful menu with a shiny inline button."
-	secondMenu = "<b>Menu 2</b>\n\nA better menu with even more shiny inline buttons."
-
-	// Button texts
-	nextButton     = "Next"
-	backButton     = "Back"
-	tutorialButton = "Tutorial"
-
-	bot Bot
-
-	// Keyboard layout for the first menu. One button, one row
-	firstMenuMarkup = tgbotapi.NewInlineKeyboardMarkup(
-		tgbotapi.NewInlineKeyboardRow(
-			tgbotapi.NewInlineKeyboardButtonData(nextButton, nextButton),
-		),
-	)
+const (
+	RECOMENDACION   = "/recomendacion"
+	BUSQUEDA        = "/busqueda"
+	HISTORIAL       = "/historial"
+	GOOGLEBOOKS     = "/googlebooks"
+	PERSONALIZACION = "/personalización"
+	TITULO          = "Titulo"
+	AUTOR           = "Autor"
+	EDITORIAL       = "Editorial"
+	GENERO          = "Genero"
 )
 
 type Bot struct {
@@ -46,41 +39,81 @@ func (b *Bot) getBotToken() string {
 	return b.API.Token
 }
 
-func (b *Bot) manejarComando(msg *tgbotapi.Message) {
+func (b *Bot) manejarComando(id int64, msg string) {
 
-	switch msg.Text {
-	case "/start":
-		_ = b.sendText(msg.Chat.ID, "mostrar un menu con todos los demas comandos")
-	case "/recomendacion":
+	switch msg {
+	case RECOMENDACION:
 		b.Recomendacion = true
-		b.recomendar(msg)
-	case "/busqueda":
+		menuOpciones := crearMenu(RECOMENDACION, id)
+		b.API.Send(menuOpciones)
+		b.recomendar(msg, id)
+	case BUSQUEDA:
 		b.Busqueda = true
-		b.buscar(msg)
-	case "/historial":
+		//b.sendText(id, "Estas son las busquedas:")
+
+		menuOpciones := crearMenu(BUSQUEDA, id)
+
+		b.API.Send(menuOpciones)
+
+		b.buscar(msg, id)
+	case HISTORIAL:
 		b.Historial = true
-		b.verHistorial(msg)
-	case "/googlebooks":
+		b.verHistorial(msg, id)
+	case GOOGLEBOOKS:
+
 		// sus botones
 		//b.interactuarGoogleBooks(msg, boton seleccionado )
-	case "/personalización":
+	case PERSONALIZACION:
 		// code if no case matches
+	default:
+		menu_opciones := crearMenu("/start", id)
+		b.API.Send(menu_opciones)
+		// informar que boton se toco
 	}
 
 }
 
 // comandos
-func (b *Bot) buscar(msg *tgbotapi.Message) {
-	b.sendText(msg.Chat.ID, "Estas son las busquedas:")
-	menu_opciones := tgbotapi.NewMessage(msg.Chat.ID, firstMenu)
-	menu_opciones.ReplyMarkup = firstMenuMarkup
-	b.API.Send(menu_opciones)
+func (b *Bot) buscar(msg string, id int64) {
+	//remover menu
+
+	if msg == AUTOR {
+		// llamar a la api buscando por autior y mostrar los resultados
+	}
+	if msg == EDITORIAL {
+		// llamar a la api buscando por editorial y mostrar los resultados
+	}
+	if msg == TITULO {
+		b.sendText(id, "Por favor ingrese el titulo del libro")
+		// agarrar el titulo del libro y buscarlo
+
+		// llamar a la api buscando por titulo y mostrar los resultados
+		// b.sendText(id, resultados)
+	}
+	if msg == GENERO {
+		// llamar a la api buscando por genero y mostrar los resultados
+	}
+
 }
-func (b *Bot) recomendar(msg *tgbotapi.Message) {
-	b.sendText(msg.Chat.ID, "Estas son las recomendaciones: bu bu bu ")
+
+func (b *Bot) recomendar(msg string, id int64) {
+	b.sendText(id, "Estas son las recomendaciones: bu bu bu ")
+	if msg == EDITORIAL {
+		// llamar a la api buscando por editorial y mostrar los resultados
+	}
+	if msg == TITULO {
+		b.sendText(id, "Por favor ingrese el titulo del libro")
+		// agarrar el titulo del libro y buscarlo
+
+		// llamar a la api buscando por titulo y mostrar los resultados
+		// b.sendText(id, resultados)
+	}
+	if msg == GENERO {
+		// llamar a la api buscando por genero y mostrar los resultados
+	}
 }
-func (b *Bot) verHistorial(msg *tgbotapi.Message) {
-	b.sendText(msg.Chat.ID, "Este es tu historial")
+func (b *Bot) verHistorial(msg string, id int64) {
+	b.sendText(id, "Este es tu historial")
 }
 
 /*
@@ -100,13 +133,15 @@ func (b *Bot) onUpdateReceived(update tgbotapi.Update) { // lee los mensajes
 	//user := msg.From
 	// si se toca algun comando -> llamar a manejarComando
 	if msg.IsCommand() {
-		b.manejarComando(msg)
-	} else {
-		//b.sendText(user.ID, "No entiendo tu mensaje. por favor usar los comandos")
-		// usar nlp
-		b.interactuarGoogleBooks(msg, update)
+		b.manejarComando(msg.Chat.ID, msg.Text)
+	} else if msg.Text == AUTOR || msg.Text == EDITORIAL || msg.Text == GENERO {
+		b.sendText(msg.Chat.ID, "presionste el boton de "+msg.Text)
+		// si se toca un boton de autor o editorial -> puede ser recomendacion o busqueda -> ver como diferenciar
 
-		// llamar a "/start"
+	} else if msg.Text == TITULO {
+		b.buscar(msg.Text, msg.Chat.ID)
+	} else {
+		b.sendText(msg.Chat.ID, "No se reconoce el comando")
 	}
 
 }
@@ -121,6 +156,22 @@ func (b *Bot) sendText(who int64, what string) error {
 
 	log.Printf("Sent message to %s", send.Chat.FirstName)
 	return err
+}
+
+func (b *Bot) onCallbackQuery(update tgbotapi.Update) {
+	callback := update.CallbackQuery
+
+	if callback != nil {
+
+		data := callback.Data
+		// es un camnando -> estamos en el /start
+		if data == RECOMENDACION || data == BUSQUEDA || data == HISTORIAL || data == GOOGLEBOOKS || data == PERSONALIZACION {
+
+			b.manejarComando(update.CallbackQuery.Message.Chat.ID, update.CallbackQuery.Data)
+
+		}
+
+	}
 }
 
 // Every time someone sends a private message to your bot,
@@ -161,9 +212,12 @@ func main() {
 	}()
 
 	for update := range updates {
-		if update.Message == nil {
-			continue
+		if update.Message != nil {
+			b.onUpdateReceived(update)
 		}
-		b.onUpdateReceived(update)
+		if update.CallbackQuery != nil {
+			b.onCallbackQuery(update)
+		}
+
 	}
 }
