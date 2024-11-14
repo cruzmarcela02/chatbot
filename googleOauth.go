@@ -118,8 +118,9 @@ func (b *Bot) buscarYAgregarLibro(msg *tgbotapi.Message, token *oauth2.Token) {
 
 	// Realizar la búsqueda
 	b.sendText(msg.Chat.ID, msg.Text)
+}
 
-	/*call := service.Volumes.List(busqueda).MaxResults(5)
+/*call := service.Volumes.List(busqueda).MaxResults(5)
 	resp, err := call.Do()
 	if err != nil {
 		b.sendText(msg.Chat.ID, "Error al buscar libros: "+err.Error())
@@ -148,7 +149,7 @@ func (b *Bot) buscarYAgregarLibro(msg *tgbotapi.Message, token *oauth2.Token) {
 		return
 	}
 
-	b.sendText(msg.Chat.ID, fmt.Sprintf("El libro '%s' ha sido agregado a tu bookshelf.", libroElegido.VolumeInfo.Title))*/
+	b.sendText(msg.Chat.ID, fmt.Sprintf("El libro '%s' ha sido agregado a tu bookshelf.", libroElegido.VolumeInfo.Title))
 }
 
 // main
@@ -158,3 +159,5 @@ func (b *Bot) buscarYAgregarLibro(msg *tgbotapi.Message, token *oauth2.Token) {
 // googleOuth -> manejo de autenticacion -> requiere base de datos o json
 
 // googleBooks -> manejo de google books -> usa googleOuth
+
+// recomednar*/

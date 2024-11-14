@@ -7,7 +7,9 @@ var (
 	MenuStart         = "Bienvenido a tu bot literario."
 	MenuBusqueda      = "Bajo que parametro deseas buscar?"
 	MenuRecomendacion = "Recomendacion"
-	MenuGoogleBooks   = "Google Books"
+
+	MenuGoogleBooks = "Google Books"
+
 	//secondMenu = "<b>Menu 2</b>\n\nA better menu with even more shiny inline buttons."
 
 	// Button texts
@@ -15,34 +17,20 @@ var (
 	busqueda        = "Busqueda"
 	historial       = "Historial"
 	googlebooks     = "Googlebooks"
+	informe         = "Informe"
 	personalización = "Personalización"
-
-	/*	// Keyboard layout for the first menu. One button, one row
-		MenuStartMarkup = tgbotapi.NewInlineKeyboardMarkup(
-			tgbotapi.NewInlineKeyboardRow(
-				tgbotapi.NewInlineKeyboardButtonData(recomendacion, RECOMENDACION),
-				tgbotapi.NewInlineKeyboardButtonData(busqueda, BUSQUEDA),
-				tgbotapi.NewInlineKeyboardButtonData(historial, HISTORIAL),
-			),
-			tgbotapi.NewInlineKeyboardRow(
-				tgbotapi.NewInlineKeyboardButtonData(googlebooks, GOOGLEBOOKS),
-				tgbotapi.NewInlineKeyboardButtonData(personalización, PERSONALIZACION),
-			),
-		)*/
 )
 
 func crearMenu(comando string, id int64) tgbotapi.MessageConfig {
 
-	var menu_opciones tgbotapi.MessageConfig
 	switch comando {
-	case "/start":
-		menu_opciones = CrearMenuStart(id)
+	case START:
+		return CrearMenuStart(id)
 	case RECOMENDACION:
-		menu_opciones = CrearMenuRecomendar(id)
-	case BUSQUEDA:
-		menu_opciones = CrearMenuBusqueda(id)
+		return CrearMenuRecomendar(id)
+	default:
+		return CrearMenuBusqueda(id)
 	}
-	return menu_opciones
 }
 
 func CrearMenuStart(id int64) tgbotapi.MessageConfig {
@@ -55,6 +43,7 @@ func CrearMenuStart(id int64) tgbotapi.MessageConfig {
 		),
 		tgbotapi.NewInlineKeyboardRow(
 			tgbotapi.NewInlineKeyboardButtonData(googlebooks, GOOGLEBOOKS),
+			tgbotapi.NewInlineKeyboardButtonData(informe, INFORME),
 			tgbotapi.NewInlineKeyboardButtonData(personalización, PERSONALIZACION),
 		),
 	)
@@ -72,18 +61,24 @@ func CrearMenuBusqueda(id int64) tgbotapi.MessageConfig {
 			tgbotapi.NewKeyboardButton(GENERO),
 		),
 	)
-
 	return busqueda
 }
 
 func CrearMenuRecomendar(id int64) tgbotapi.MessageConfig {
-	busqueda := tgbotapi.NewMessage(id, MenuBusqueda)
-	busqueda.ReplyMarkup = tgbotapi.NewInlineKeyboardMarkup(
-		tgbotapi.NewInlineKeyboardRow(
-			tgbotapi.NewInlineKeyboardButtonData(AUTOR, AUTOR),
-			tgbotapi.NewInlineKeyboardButtonData(EDITORIAL, EDITORIAL),
-			tgbotapi.NewInlineKeyboardButtonData(GENERO, GENERO),
+	recomendar := tgbotapi.NewMessage(id, MenuRecomendacion)
+
+	recomendar.ReplyMarkup = tgbotapi.NewReplyKeyboard(
+		tgbotapi.NewKeyboardButtonRow(
+			tgbotapi.NewKeyboardButton(AUTOR),
+			tgbotapi.NewKeyboardButton(EDITORIAL),
+			tgbotapi.NewKeyboardButton(GENERO),
 		),
 	)
-	return busqueda
+	return recomendar
+}
+
+func RemoverMenu(id int64, mensaje string) tgbotapi.MessageConfig {
+	menu := tgbotapi.NewMessage(id, mensaje)
+	menu.ReplyMarkup = tgbotapi.NewRemoveKeyboard(true)
+	return menu
 }

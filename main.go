@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"log"
 	"net/http"
 	"os"
@@ -12,10 +13,12 @@ import (
 )
 
 const (
+	START           = "/start"
 	RECOMENDACION   = "/recomendacion"
 	BUSQUEDA        = "/busqueda"
 	HISTORIAL       = "/historial"
 	GOOGLEBOOKS     = "/googlebooks"
+	INFORME         = "/analisisbusqueda"
 	PERSONALIZACION = "/personalización"
 	TITULO          = "Titulo"
 	AUTOR           = "Autor"
@@ -26,92 +29,81 @@ const (
 type Bot struct {
 	API           *tgbotapi.BotAPI
 	Recomendacion bool // si se toca el comando /recomendacion o si el usuario ingresa recomendaciono alguna variante
-	Busqueda      bool // si se toca el comando /busqueda o si el usuario ingresa busqueda o alguna variante
-	Historial     bool // si se toca el comando /historial o si el usuario ingresa historial o alguna variante
+	SearchTerm    bool // Esta esperando un termino a buscar
+	filtro        string
 	OAuthConfig   *oauth2.Config
 }
 
-func (b *Bot) getBotUsername() string {
+/*func (b *Bot) getBotUsername() string {
 	return b.API.Self.UserName
 }
 
 func (b *Bot) getBotToken() string {
 	return b.API.Token
-}
+}*/
 
-func (b *Bot) manejarComando(id int64, msg string) {
+func (b *Bot) manejarComando(id int64, msg string) { // maneja los comandos historial, personalizacion e informe
+	b.Recomendacion = false
 
 	switch msg {
 	case RECOMENDACION:
 		b.Recomendacion = true
-		menuOpciones := crearMenu(RECOMENDACION, id)
-		b.API.Send(menuOpciones)
-		b.recomendar(msg, id)
+		b.API.Send(crearMenu(RECOMENDACION, id))
+		// escuchar una nueva actualizacion
+		// nueva actualizacion -> set filtro
+		// escuchar nueva actualizacion
+		// hacer recomendacion con el filtro
 	case BUSQUEDA:
-		b.Busqueda = true
-		//b.sendText(id, "Estas son las busquedas:")
-
-		menuOpciones := crearMenu(BUSQUEDA, id)
-
-		b.API.Send(menuOpciones)
-
-		b.buscar(msg, id)
+		b.API.Send(crearMenu(BUSQUEDA, id))
+		// escuchar una nueva actualizacion
+		// nueva actualizacion -> set filtro
+		// escuchar nueva actualizacion
+		// hacer busqueda con el filtro
 	case HISTORIAL:
-		b.Historial = true
 		b.verHistorial(msg, id)
 	case GOOGLEBOOKS:
 
 		// sus botones
 		//b.interactuarGoogleBooks(msg, boton seleccionado )
+
+	case INFORME:
+		// realizar informe con todas las busquedas y las recomendaciones del ultimo mes
+
 	case PERSONALIZACION:
-		// code if no case matches
+		// editable
+		// filtro global → si esta activo mostrar un menu
+		//
+		//desea usar su filtro global ?
+		//
+		//1) Usar filtro global → hace la busqueda agarrando el filtro de la BD
+		//
+		//2) busqueda personalizada → ingresar el campo a buscar (actual)
+		//
+		//si no existe muestra ‘
+		//
+		//Por favor ingrese el %s a buscar, campo
+
 	default:
-		menu_opciones := crearMenu("/start", id)
-		b.API.Send(menu_opciones)
+		b.API.Send(crearMenu(START, id))
 		// informar que boton se toco
 	}
 
 }
 
 // comandos
-func (b *Bot) buscar(msg string, id int64) {
-	//remover menu
-
-	if msg == AUTOR {
-		// llamar a la api buscando por autior y mostrar los resultados
-	}
-	if msg == EDITORIAL {
-		// llamar a la api buscando por editorial y mostrar los resultados
-	}
-	if msg == TITULO {
-		b.sendText(id, "Por favor ingrese el titulo del libro")
-		// agarrar el titulo del libro y buscarlo
-
-		// llamar a la api buscando por titulo y mostrar los resultados
-		// b.sendText(id, resultados)
-	}
-	if msg == GENERO {
-		// llamar a la api buscando por genero y mostrar los resultados
-	}
-
-}
-
-func (b *Bot) recomendar(msg string, id int64) {
-	b.sendText(id, "Estas son las recomendaciones: bu bu bu ")
-	if msg == EDITORIAL {
-		// llamar a la api buscando por editorial y mostrar los resultados
-	}
-	if msg == TITULO {
-		b.sendText(id, "Por favor ingrese el titulo del libro")
-		// agarrar el titulo del libro y buscarlo
-
-		// llamar a la api buscando por titulo y mostrar los resultados
-		// b.sendText(id, resultados)
-	}
-	if msg == GENERO {
-		// llamar a la api buscando por genero y mostrar los resultados
+func (b *Bot) setFiltro(msg string) {
+	switch msg {
+	case AUTOR:
+		b.filtro = FAUTOR
+	case EDITORIAL:
+		b.filtro = FEDITORIAL
+	case TITULO:
+		b.filtro = FTITULO
+	case GENERO:
+		b.filtro = FGENERO
 	}
 }
+
 func (b *Bot) verHistorial(msg string, id int64) {
 	b.sendText(id, "Este es tu historial")
 }
@@ -133,17 +125,30 @@ func (b *Bot) onUpdateReceived(update tgbotapi.Update) { // lee los mensajes
 	//user := msg.From
 	// si se toca algun comando -> llamar a manejarComando
 	if msg.IsCommand() {
+		b.SearchTerm = false
 		b.manejarComando(msg.Chat.ID, msg.Text)
-	} else if msg.Text == AUTOR || msg.Text == EDITORIAL || msg.Text == GENERO {
-		b.sendText(msg.Chat.ID, "presionste el boton de "+msg.Text)
-		// si se toca un boton de autor o editorial -> puede ser recomendacion o busqueda -> ver como diferenciar
-
-	} else if msg.Text == TITULO {
-		b.buscar(msg.Text, msg.Chat.ID)
-	} else {
-		b.sendText(msg.Chat.ID, "No se reconoce el comando")
+		return
+	}
+	if b.SearchTerm {
+		if b.Recomendacion {
+		} else {
+			b.buscarSinAuth(msg, msg.Text, b.filtro)
+		}
+		return
 	}
 
+	if msg.Text == AUTOR || msg.Text == EDITORIAL || msg.Text == GENERO || msg.Text == TITULO { //  -> hacer comando
+		removerMenu := RemoverMenu(msg.Chat.ID, fmt.Sprintf("Por favor ingrese el %s a buscar", msg.Text))
+		b.API.Send(removerMenu)
+		b.SearchTerm = true
+		b.setFiltro(msg.Text)
+		return
+
+	} else {
+		b.SearchTerm = false
+		b.sendText(msg.Chat.ID, "No se reconoce el comando, usar alguno de los comandos del menu")
+		return
+	}
 }
 
 func (b *Bot) sendText(who int64, what string) error {
@@ -162,11 +167,9 @@ func (b *Bot) onCallbackQuery(update tgbotapi.Update) {
 	callback := update.CallbackQuery
 
 	if callback != nil {
-
 		data := callback.Data
 		// es un camnando -> estamos en el /start
-		if data == RECOMENDACION || data == BUSQUEDA || data == HISTORIAL || data == GOOGLEBOOKS || data == PERSONALIZACION {
-
+		if data == RECOMENDACION || data == BUSQUEDA || data == HISTORIAL || data == GOOGLEBOOKS || data == PERSONALIZACION { // lo dejamos o lo hacemos menu adentro del teclado
 			b.manejarComando(update.CallbackQuery.Message.Chat.ID, update.CallbackQuery.Data)
 
 		}
@@ -174,11 +177,6 @@ func (b *Bot) onCallbackQuery(update tgbotapi.Update) {
 	}
 }
 
-// Every time someone sends a private message to your bot,
-// your onUpdateReceived method will be called automatically and you'll be able to handle the update parameter,
-// which contains the message, along with a great deal of other info which you can see detailed here.
-// The user - Who sent the message. Access it via update.getMessage().getFrom().
-// The message - What was sent. Access it via update.getMessage().
 func main() {
 	bot, err := tgbotapi.NewBotAPI("8040461009:AAGk-uZFfkIR5-mX5OI7XmNVIlwJseS6iPE")
 	if err != nil {
@@ -199,7 +197,7 @@ func main() {
 		ClientID:     os.Getenv("GOOGLE_CLIENT_ID"),
 		ClientSecret: os.Getenv("GOOGLE_CLIENT_SECRET"),
 		Scopes:       []string{books.BooksScope},
-		RedirectURL:  "https://relaxed-stunning-stag.ngrok-free.app/oauth2callback", // Cambiar cada vez que se levanta
+		RedirectURL:  "https://relaxed-stunning-stag.ngrok-free.app/oauth2callback", // ngrok
 		Endpoint:     google.Endpoint,
 	}
 
