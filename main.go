@@ -24,6 +24,8 @@ const (
 	AUTOR           = "Autor"
 	EDITORIAL       = "Editorial"
 	GENERO          = "Genero"
+	RECOMENDACIONES = "Mis recomendaciones"
+	BUSQUEDAS       = "Mis Busquedas"
 	TERMINAR        = "Terminar"
 )
 
@@ -62,7 +64,8 @@ func (b *Bot) manejarComando(id int64, msg string) { // maneja los comandos hist
 		// escuchar nueva actualizacion
 		// hacer busqueda con el filtro
 	case HISTORIAL:
-		b.verHistorial(msg, id)
+		b.API.Send(crearMenu(HISTORIAL, id))
+
 	case GOOGLEBOOKS:
 
 		// sus botones
@@ -107,9 +110,9 @@ func (b *Bot) verificarFiltro(msg *tgbotapi.Message, filtro string) {
 	b.sendText(msg.Chat.ID, fmt.Sprintf("Por favor ingrese el %s a buscar", msg.Text))
 }
 
-func (b *Bot) verHistorial(msg string, id int64) {
-	b.sendText(id, "Este es tu historial")
-}
+// func (b *Bot) verHistorial(msg string, id int64) {
+// 	b.sendText(id, "Este es tu historial")
+// }
 
 /*
 	func (b *Bot) interactuarGoogleBooks(msg *tgbotapi.Message) {
@@ -133,9 +136,23 @@ func (b *Bot) onUpdateReceived(update tgbotapi.Update) { // lee los mensajes
 		return
 	}
 
+	if msg.Text == RECOMENDACIONES || msg.Text == BUSQUEDAS {
+		removerMenu := RemoverMenu(msg.Chat.ID, "Queres ver el historial: "+msg.Text)
+		b.API.Send(removerMenu)
+		b.verHistorial(msg, msg.Text)
+		return
+	}
+
+	// Busqueda de libro o recomendacion
 	if msg.Text == TERMINAR {
-		b.filwait = false
-		removerMenu := RemoverMenu(msg.Chat.ID, fmt.Sprintf("Filtros inngresados con exito"))
+		// Caso de marcar TERMINAR sin agregar ningun filtro
+		if !b.filwait {
+			removerMenu := RemoverMenu(msg.Chat.ID, "Se cancelo el proceso")
+			b.API.Send(removerMenu)
+			return
+		}
+
+		removerMenu := RemoverMenu(msg.Chat.ID, "Filtros ingresados con exito")
 		b.API.Send(removerMenu)
 		b.realizarbusqueda(msg)
 		return
@@ -148,9 +165,7 @@ func (b *Bot) onUpdateReceived(update tgbotapi.Update) { // lee los mensajes
 			b.filwait = true
 		}
 		b.verificarFiltro(msg, msg.Text)
-
 		return
-
 	}
 
 	if b.filwait {

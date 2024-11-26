@@ -2,10 +2,11 @@ package main
 
 import (
 	"fmt"
-	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
-	"google.golang.org/api/books/v1"
 	"net/http"
 	"strconv"
+
+	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
+	"google.golang.org/api/books/v1"
 )
 
 const (
@@ -102,10 +103,17 @@ func (b *Bot) recomendarLibros(msg *tgbotapi.Message, filtro string) {
 		recomendacion += "\n"
 		recomendacion += libro.VolumeInfo.Description
 
-		b.sendText(msg.Chat.ID, fmt.Sprintf("%s", recomendacion))
+		b.sendText(msg.Chat.ID, recomendacion)
 
 	}
+}
 
+func (b *Bot) verHistorial(msg *tgbotapi.Message, filtro string) {
+	if filtro == RECOMENDACIONES {
+		b.sendText(msg.Chat.ID, "Historial de tus recomendaciones")
+		return
+	}
+	b.sendText(msg.Chat.ID, "Historial de tus busquedas")
 }
 
 /*
@@ -165,13 +173,19 @@ func conseguirLink(firstBook *books.Volume) string {
 }
 
 func (b *Bot) realizarbusqueda(msg *tgbotapi.Message) {
+	// Caso de marcar TERMINAR sin agregar ningun filtro
+	if !b.filwait {
+		removerMenu := RemoverMenu(msg.Chat.ID, "Se cancelo el proceso")
+		b.API.Send(removerMenu)
+		return
+	}
 
 	if b.Recomendacion {
 		b.recomendarLibros(msg, b.filtro)
+
 	} else {
 		b.buscarSinAuth(msg, b.filtro)
 	}
+	b.filwait = false
 	b.filtro = ""
-	return
-
 }

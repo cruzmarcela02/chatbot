@@ -7,6 +7,7 @@ var (
 	MenuStart         = "Bienvenido a tu bot literario."
 	MenuBusqueda      = "Bajo que parametro deseas buscar?"
 	MenuRecomendacion = "Recomendacion"
+	MenuHistorial     = "Historial"
 
 	MenuGoogleBooks = "Google Books"
 
@@ -28,6 +29,8 @@ func crearMenu(comando string, id int64) tgbotapi.MessageConfig {
 		return CrearMenuStart(id)
 	case RECOMENDACION:
 		return CrearMenuRecomendar(id)
+	case HISTORIAL:
+		return CrearMenuHistorial(id)
 	default:
 		return CrearMenuBusqueda(id)
 	}
@@ -80,6 +83,17 @@ func CrearMenuRecomendar(id int64) tgbotapi.MessageConfig {
 	)
 
 	return recomendar
+}
+
+func CrearMenuHistorial(id int64) tgbotapi.MessageConfig {
+	verHistorial := tgbotapi.NewMessage(id, MenuHistorial)
+	verHistorial.ReplyMarkup = tgbotapi.NewReplyKeyboard(
+		tgbotapi.NewKeyboardButtonRow(
+			tgbotapi.NewKeyboardButton(BUSQUEDAS),
+			tgbotapi.NewKeyboardButton(RECOMENDACIONES),
+		),
+	)
+	return verHistorial
 }
 
 func RemoverMenu(id int64, mensaje string) tgbotapi.MessageConfig {

@@ -3,12 +3,13 @@ package main
 import (
 	"context"
 	"fmt"
-	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
-	"golang.org/x/oauth2"
-	"google.golang.org/api/books/v1"
 	"net/http"
 	"strconv"
 	"strings"
+
+	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
+	"golang.org/x/oauth2"
+	"google.golang.org/api/books/v1"
 )
 
 var userTokens = make(map[int64]*oauth2.Token)
@@ -23,7 +24,6 @@ func obtenerTokenAlmacenado(userID int64) (*oauth2.Token, error) {
 }
 
 func (b *Bot) GoogleBooksAuth(msg *tgbotapi.Message) {
-
 	// Generar un token de estado único para este usuario
 	state := "state-" + strconv.FormatInt(msg.From.ID, 10)
 	stateTokens[msg.From.ID] = state // Almacenar el token asociado al usuario
@@ -69,7 +69,6 @@ func (b *Bot) handleGoogleCallback(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	fmt.Fprint(w, "Autenticacion realizada ocn exito.")
-
 }
 
 func (b *Bot) almacenarToken(userID int64, token *oauth2.Token) error {
@@ -105,7 +104,6 @@ func (b *Bot) interactuarGoogleBooks(msg *tgbotapi.Message, update tgbotapi.Upda
 		b.buscarYAgregarLibro(msg, token)
 
 	}
-
 }
 
 func (b *Bot) buscarYAgregarLibro(msg *tgbotapi.Message, token *oauth2.Token) {
