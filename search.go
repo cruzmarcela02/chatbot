@@ -5,7 +5,6 @@ import (
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
 	"google.golang.org/api/books/v1"
 	"net/http"
-	"strings"
 )
 
 const (
@@ -15,7 +14,7 @@ const (
 	FGENERO    = "subject:"
 )
 
-func (b *Bot) buscarSinAuth(msg *tgbotapi.Message, busqueda string, filtro string) {
+func (b *Bot) buscarSinAuth(msg *tgbotapi.Message, filtro string) {
 
 	// Create a new HTTP client without OAuth authentication
 	client := &http.Client{}
@@ -25,8 +24,8 @@ func (b *Bot) buscarSinAuth(msg *tgbotapi.Message, busqueda string, filtro strin
 		return
 	}
 
-	book := armarQuery(filtro, busqueda)
-	call := service.Volumes.List(book).MaxResults(1)
+	//book := armarQuery(filtro, busqueda)
+	call := service.Volumes.List(filtro).MaxResults(3)
 	resp, err := call.Do()
 	if err != nil {
 		b.sendText(msg.Chat.ID, "Error al buscar libros: "+err.Error())
@@ -38,26 +37,30 @@ func (b *Bot) buscarSinAuth(msg *tgbotapi.Message, busqueda string, filtro strin
 		return
 	}
 
-	// Get the first book -> habria que hacer una busqueda literal ->  si no lo encuentra que le diga al usuario que no se encontro y de el primero
-	firstBook := resp.Items[0]
+	book := resp.Items[0]
+	completa := false
+	for _, item := range resp.Items {
+		if item.AccessInfo.AccessViewStatus != "NONE" && !completa {
+			book = item
+			completa = true
+		}
+	}
+	downloadLink := conseguirLink(book)
+	titulo := book.VolumeInfo.Title
 
-	// mostrar todos los campos de firstBook
-
-	// Get the download link
-	downloadLink := conseguirLink(firstBook)
-	titulo := firstBook.VolumeInfo.Title
-	campo := getCampo(filtro, firstBook)
+	//campo := getCampo(filtros, firstBook)
 
 	// pasar a minuscula
-	busqueda = strings.ToLower(busqueda)
-	campo = strings.ToLower(campo)
+	//busqueda = strings.ToLower(busqueda)
+	//campo = strings.ToLower(campo)
 
 	// transformar el download link a un archivo
 
 	// hay veces que el campo esta mal ingresado
-	// ver de hacer un if para que si no encuentra el campo, busque en todos los campos
 
-	if strings.Contains(campo, busqueda) {
+	b.sendText(msg.Chat.ID, fmt.Sprintf("El libro encontrado es %s.Descargalo en %s", titulo, downloadLink))
+
+	/*if strings.Contains(campo, busqueda) {
 		b.sendText(msg.Chat.ID, fmt.Sprintf("El libro encontrado es %s.Descargalo en %s", titulo, downloadLink))
 		// ver de conseguir con download
 
@@ -65,17 +68,15 @@ func (b *Bot) buscarSinAuth(msg *tgbotapi.Message, busqueda string, filtro strin
 		b.sendText(msg.Chat.ID, "No se encontro el libro en el campo especificado. Verifica por errores ortograficos o de tipeo")
 		b.sendText(msg.Chat.ID, fmt.Sprintf("el primer libro encontrado fue %s. Descargalo en %s", titulo, downloadLink))
 		// mandar libro en formato epub
-	}
+	}*/
 
 }
 
-func armarQuery(filtro string, busqueda string) string {
+/*
+func getCampo(filtro []string, firstbook *books.Volume) string {
 
-	query := filtro + "\"" + busqueda + "\""
-	return query
-}
 
-func getCampo(filtro string, firstbook *books.Volume) string {
+
 	switch filtro {
 	case FTITULO:
 		return firstbook.VolumeInfo.Title
@@ -91,7 +92,7 @@ func getCampo(filtro string, firstbook *books.Volume) string {
 	default:
 		return "filtro no valido"
 	}
-}
+}*/
 
 func conseguirLink(firstBook *books.Volume) string {
 	/*
@@ -125,4 +126,15 @@ func conseguirLink(firstBook *books.Volume) string {
 		return firstBook.AccessInfo.Pdf.DownloadLink
 	}
 	return firstBook.VolumeInfo.PreviewLink
+}
+
+func (b *Bot) realizarbusqueda(msg *tgbotapi.Message) {
+
+	if b.Recomendacion {
+	} else {
+		b.buscarSinAuth(msg, b.filtro)
+	}
+	b.filtro = ""
+	return
+
 }

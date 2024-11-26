@@ -24,13 +24,14 @@ const (
 	AUTOR           = "Autor"
 	EDITORIAL       = "Editorial"
 	GENERO          = "Genero"
+	TERMINAR        = "Terminar"
 )
 
 type Bot struct {
 	API           *tgbotapi.BotAPI
 	Recomendacion bool // si se toca el comando /recomendacion o si el usuario ingresa recomendaciono alguna variante
-	SearchTerm    bool // Esta esperando un termino a buscar
 	filtro        string
+	filwait       bool
 	OAuthConfig   *oauth2.Config
 }
 
@@ -55,6 +56,7 @@ func (b *Bot) manejarComando(id int64, msg string) { // maneja los comandos hist
 		// hacer recomendacion con el filtro
 	case BUSQUEDA:
 		b.API.Send(crearMenu(BUSQUEDA, id))
+
 		// escuchar una nueva actualizacion
 		// nueva actualizacion -> set filtro
 		// escuchar nueva actualizacion
@@ -91,17 +93,18 @@ func (b *Bot) manejarComando(id int64, msg string) { // maneja los comandos hist
 }
 
 // comandos
-func (b *Bot) setFiltro(msg string) {
-	switch msg {
+func (b *Bot) verificarFiltro(msg *tgbotapi.Message, filtro string) {
+	switch filtro {
 	case AUTOR:
-		b.filtro = FAUTOR
+		b.filtro += FAUTOR
 	case EDITORIAL:
-		b.filtro = FEDITORIAL
+		b.filtro += FEDITORIAL
 	case TITULO:
-		b.filtro = FTITULO
+		b.filtro += FTITULO
 	case GENERO:
-		b.filtro = FGENERO
+		b.filtro += FGENERO
 	}
+	b.sendText(msg.Chat.ID, fmt.Sprintf("Por favor ingrese el %s a buscar", msg.Text))
 }
 
 func (b *Bot) verHistorial(msg string, id int64) {
@@ -125,27 +128,35 @@ func (b *Bot) onUpdateReceived(update tgbotapi.Update) { // lee los mensajes
 	//user := msg.From
 	// si se toca algun comando -> llamar a manejarComando
 	if msg.IsCommand() {
-		b.SearchTerm = false
+
 		b.manejarComando(msg.Chat.ID, msg.Text)
 		return
 	}
-	if b.SearchTerm {
-		if b.Recomendacion {
-		} else {
-			b.buscarSinAuth(msg, msg.Text, b.filtro)
-		}
+
+	if msg.Text == TERMINAR {
+		b.filwait = false
+		removerMenu := RemoverMenu(msg.Chat.ID, fmt.Sprintf("Filtros inngresados con exito"))
+		b.API.Send(removerMenu)
+		b.realizarbusqueda(msg)
 		return
 	}
 
 	if msg.Text == AUTOR || msg.Text == EDITORIAL || msg.Text == GENERO || msg.Text == TITULO { //  -> hacer comando
-		removerMenu := RemoverMenu(msg.Chat.ID, fmt.Sprintf("Por favor ingrese el %s a buscar", msg.Text))
-		b.API.Send(removerMenu)
-		b.SearchTerm = true
-		b.setFiltro(msg.Text)
+
+		if !b.filwait {
+			b.sendText(msg.Chat.ID, "Si no desea agregar otro filtro toque el boton cancelar, en caso contrario toque el boton de filtro")
+			b.filwait = true
+		}
+		b.verificarFiltro(msg, msg.Text)
+
 		return
 
+	}
+
+	if b.filwait {
+		b.filtro += "\"" + msg.Text + "\" "
+		return
 	} else {
-		b.SearchTerm = false
 		b.sendText(msg.Chat.ID, "No se reconoce el comando, usar alguno de los comandos del menu")
 		return
 	}

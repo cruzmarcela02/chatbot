@@ -56,11 +56,14 @@ func CrearMenuBusqueda(id int64) tgbotapi.MessageConfig {
 	busqueda.ReplyMarkup = tgbotapi.NewReplyKeyboard(
 		tgbotapi.NewKeyboardButtonRow(
 			tgbotapi.NewKeyboardButton(TITULO),
-			tgbotapi.NewKeyboardButton(AUTOR),
+			tgbotapi.NewKeyboardButton(AUTOR)),
+		tgbotapi.NewKeyboardButtonRow(
 			tgbotapi.NewKeyboardButton(EDITORIAL),
 			tgbotapi.NewKeyboardButton(GENERO),
+			tgbotapi.NewKeyboardButton(TERMINAR),
 		),
 	)
+
 	return busqueda
 }
 
@@ -72,8 +75,10 @@ func CrearMenuRecomendar(id int64) tgbotapi.MessageConfig {
 			tgbotapi.NewKeyboardButton(AUTOR),
 			tgbotapi.NewKeyboardButton(EDITORIAL),
 			tgbotapi.NewKeyboardButton(GENERO),
+			tgbotapi.NewKeyboardButton(TERMINAR),
 		),
 	)
+
 	return recomendar
 }
 
