@@ -171,16 +171,13 @@ func (b *Bot) onUpdateReceived(update tgbotapi.Update) { // lee los mensajes
 		return
 	}
 
-	/*if (msg.Text == FAVORITOS || msg.Text == POR_LEER || msg.Text == LEYENDO_AHORA) && b.autenticado {
-
+	if (msg.Text == FAVORITOS || msg.Text == POR_LEER || msg.Text == LEYENDO_AHORA || msg.Text == NO_AGREGAR) && b.autenticado {
+		removerMenu := RemoverMenu(msg.Chat.ID, "Su opereacion se realizo con exito")
+		b.API.Send(removerMenu)
 		b.agregarLibro(msg.Chat.ID, msg.Text)
+		return
 	}
 
-	if msg.Text == NO_AGREGAR {
-		removerMenu := RemoverMenu(msg.Chat.ID, "No se agregara el libro a ninguna de esas estanterias")
-		b.API.Send(removerMenu)
-		return
-	}*/
 	if b.filwait {
 		b.filtro += "\"" + msg.Text + "\" "
 		return

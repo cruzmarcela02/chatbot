@@ -55,19 +55,42 @@ func (b *Bot) buscarlibro(filtro string, id int64, token *oauth2.Token) {
 
 	b.sendText(id, fmt.Sprintf("El libro encontrado es %s.Descargalo en %s", titulo, downloadLink))
 
-	service.Mylibrary.Bookshelves.Volumes.List("0")
-	fav := service.Mylibrary.Bookshelves.AddVolume("0", book.Id)
-	fav.Do()
-
-	favoritos := service.Mylibrary.Bookshelves.Volumes.List("0").MaxResults(5)
-
-	a, err := favoritos.Do()
-	favorito := a.Items[0]
-
-	b.sendText(id, fmt.Sprintf("el valor de favoritos es %s", favorito.VolumeInfo.Title))
+	service.Mylibrary.Bookshelves.Volumes.List("4")
+	buffer := service.Mylibrary.Bookshelves.AddVolume("4", book.Id)
+	buffer.Do()
+	b.API.Send(CrearMenuAgregar(id))
 }
 
-func (b *Bot) agregarLibro(id int64) {
+func (b *Bot) agregarLibro(id int64, estanteria string) {
+	token, _ := obtenerTokenAlmacenado(id)
+	client := b.OAuthConfig.Client(context.Background(), token)
+	service, _ := books.New(client)
+
+	recuperarLibro := service.Mylibrary.Bookshelves.Volumes.List("4").MaxResults(1)
+	llamado, _ := recuperarLibro.Do()
+
+	libro := llamado.Items[0]
+
+	if estanteria == FAVORITOS {
+		favoritos := service.Mylibrary.Bookshelves.AddVolume("0", libro.Id)
+		favoritos.Do()
+		b.sendText(id, fmt.Sprintf("El libro '%s' ha sido agregado a tus favoritos.", libro.VolumeInfo.Title))
+
+	} else if estanteria == POR_LEER {
+		porLeer := service.Mylibrary.Bookshelves.AddVolume("2", libro.Id)
+		porLeer.Do()
+		b.sendText(id, fmt.Sprintf("El libro '%s' ha sido agregado a tus libros por leer.", libro.VolumeInfo.Title))
+
+	} else if estanteria == LEYENDO_AHORA {
+		leyendo := service.Mylibrary.Bookshelves.AddVolume("3", libro.Id)
+		leyendo.Do()
+		b.sendText(id, fmt.Sprintf("El libro '%s' ha sido agregado a tus libros que estas leyendo.", libro.VolumeInfo.Title))
+
+	} else {
+		b.sendText(id, "No se agregara el libro a ninguna de esas estanterias")
+	}
+	buffer := service.Mylibrary.Bookshelves.RemoveVolume("4", libro.Id)
+	buffer.Do()
 
 }
 
