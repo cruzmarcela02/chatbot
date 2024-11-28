@@ -3,16 +3,12 @@ package main
 import tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
 
 var (
-	// Menu texts
 	MenuStart         = "Bienvenido a tu bot literario."
 	MenuBusqueda      = "Bajo que parametro deseas buscar?"
 	MenuRecomendacion = "Recomendacion"
 	MenuHistorial     = "Historial"
-
-	MenuGoogleBooks = "Google Books"
-
-	//secondMenu = "<b>Menu 2</b>\n\nA better menu with even more shiny inline buttons."
-
+	MenuGoogleBooks   = "Bienvenido a tu Google Books"
+	MenuAgregar       = "¿Deseas agregar el libro a alguna estanteria?"
 	// Button texts
 	recomendacion   = "Recomendacion"
 	busqueda        = "Busqueda"
@@ -31,6 +27,8 @@ func crearMenu(comando string, id int64) tgbotapi.MessageConfig {
 		return CrearMenuRecomendar(id)
 	case HISTORIAL:
 		return CrearMenuHistorial(id)
+	case GOOGLEBOOKS:
+		return CrearMenuGoogleBooks(id)
 	default:
 		return CrearMenuBusqueda(id)
 	}
@@ -100,4 +98,29 @@ func RemoverMenu(id int64, mensaje string) tgbotapi.MessageConfig {
 	menu := tgbotapi.NewMessage(id, mensaje)
 	menu.ReplyMarkup = tgbotapi.NewRemoveKeyboard(true)
 	return menu
+}
+
+func CrearMenuGoogleBooks(id int64) tgbotapi.MessageConfig {
+	menuGoogleBooks := tgbotapi.NewMessage(id, MenuGoogleBooks)
+	menuGoogleBooks.ReplyMarkup = tgbotapi.NewInlineKeyboardMarkup(
+		tgbotapi.NewInlineKeyboardRow(
+			tgbotapi.NewInlineKeyboardButtonData(recomendacion, RECOMENDACION),
+			tgbotapi.NewInlineKeyboardButtonData(busqueda, BUSQUEDA),
+			tgbotapi.NewInlineKeyboardButtonData(historial, HISTORIAL),
+		),
+	)
+	return menuGoogleBooks
+}
+
+func CrearMenuAgregar(id int64) tgbotapi.MessageConfig {
+	menuAgregar := tgbotapi.NewMessage(id, MenuAgregar)
+	menuAgregar.ReplyMarkup = tgbotapi.NewReplyKeyboard(
+		tgbotapi.NewKeyboardButtonRow(
+			tgbotapi.NewKeyboardButton(FAVORITOS),
+			tgbotapi.NewKeyboardButton(POR_LEER),
+			tgbotapi.NewKeyboardButton(LEYENDO_AHORA),
+			tgbotapi.NewKeyboardButton(NO_AGREGAR),
+		),
+	)
+	return menuAgregar
 }

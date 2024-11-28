@@ -16,25 +16,24 @@ const (
 	FGENERO    = "subject:"
 )
 
-func (b *Bot) buscarSinAuth(msg *tgbotapi.Message, filtro string) {
+func (b *Bot) buscarSinAuth(id int64, filtro string) {
 
 	// Create a new HTTP client without OAuth authentication
 	client := &http.Client{}
 	service, err := books.New(client)
 	if err != nil {
-		b.sendText(msg.Chat.ID, "Error al crear el cliente de Google Books: "+err.Error())
+		b.sendText(id, "Error al crear el cliente de Google Books: "+err.Error())
 		return
 	}
 
 	call := service.Volumes.List(filtro).MaxResults(3)
 	resp, err := call.Do()
 	if err != nil {
-		b.sendText(msg.Chat.ID, "Error al buscar libros: "+err.Error())
+		b.sendText(id, "Error al buscar libros: "+err.Error())
 		return
 	}
-
 	if len(resp.Items) == 0 {
-		b.sendText(msg.Chat.ID, "No se encontraron libros.")
+		b.sendText(id, "No se encontraron libros.")
 		return
 	}
 
@@ -49,27 +48,12 @@ func (b *Bot) buscarSinAuth(msg *tgbotapi.Message, filtro string) {
 	downloadLink := conseguirLink(book)
 	titulo := book.VolumeInfo.Title
 
-	//campo := getCampo(filtros, firstBook)
-
-	// pasar a minuscula
-	//busqueda = strings.ToLower(busqueda)
-	//campo = strings.ToLower(campo)
-
-	// transformar el download link a un archivo
-
-	// hay veces que el campo esta mal ingresado
-
-	b.sendText(msg.Chat.ID, fmt.Sprintf("El libro encontrado es %s.Descargalo en %s", titulo, downloadLink))
-
-	/*if strings.Contains(campo, busqueda) {
-		b.sendText(msg.Chat.ID, fmt.Sprintf("El libro encontrado es %s.Descargalo en %s", titulo, downloadLink))
-		// ver de conseguir con download
-
-	} else {
-		b.sendText(msg.Chat.ID, "No se encontro el libro en el campo especificado. Verifica por errores ortograficos o de tipeo")
-		b.sendText(msg.Chat.ID, fmt.Sprintf("el primer libro encontrado fue %s. Descargalo en %s", titulo, downloadLink))
-		// mandar libro en formato epub
-	}*/
+	b.sendText(id, fmt.Sprintf("El libro encontrado es %s.Descargalo en %s", titulo, downloadLink))
+	BookBD := BookBD{
+		Title: book.VolumeInfo.Title,
+		Link:  downloadLink,
+	}
+	b.saveSearchResult(BookBD)
 
 }
 
@@ -114,29 +98,24 @@ func (b *Bot) verHistorial(msg *tgbotapi.Message, filtro string) {
 		return
 	}
 	b.sendText(msg.Chat.ID, "Historial de tus busquedas")
-}
 
-/*
-func getCampo(filtro []string, firstbook *books.Volume) string {
-
-
-
-	switch filtro {
-	case FTITULO:
-		return firstbook.VolumeInfo.Title
-	case FAUTOR:
-		return firstbook.VolumeInfo.Authors[0] // ver de no siempre agarrrar el primero
-	case FEDITORIAL:
-		// escribir por consola
-		fmt.Printf("Editorial: %s\n", firstbook.VolumeInfo.Publisher)
-
-		return firstbook.VolumeInfo.Publisher
-	case FGENERO:
-		return firstbook.VolumeInfo.Categories[0] // ver de no siempre agarrrar el primero
-	default:
-		return "filtro no valido"
+	books, err := b.getSavedSearchResults()
+	if err != nil {
+		b.sendText(msg.Chat.ID, "Error al obtener el historial de búsquedas: "+err.Error())
+		return
 	}
-}*/
+
+	if len(books) == 0 {
+		b.sendText(msg.Chat.ID, "No se encontraron resultados de búsqueda guardados.")
+		return
+	}
+
+	b.sendText(msg.Chat.ID, "Historial de búsquedas:")
+	for i, book := range books {
+
+		b.sendText(msg.Chat.ID, fmt.Sprintf("%d. Titulo:%s , Link:%s ", i+1, book.Title, book.Link))
+	}
+}
 
 func conseguirLink(firstBook *books.Volume) string {
 	/*
@@ -173,7 +152,6 @@ func conseguirLink(firstBook *books.Volume) string {
 }
 
 func (b *Bot) realizarbusqueda(msg *tgbotapi.Message) {
-	// Caso de marcar TERMINAR sin agregar ningun filtro
 	if !b.filwait {
 		removerMenu := RemoverMenu(msg.Chat.ID, "Se cancelo el proceso")
 		b.API.Send(removerMenu)
@@ -184,7 +162,12 @@ func (b *Bot) realizarbusqueda(msg *tgbotapi.Message) {
 		b.recomendarLibros(msg, b.filtro)
 
 	} else {
-		b.buscarSinAuth(msg, b.filtro)
+		if b.autenticado {
+			token, _ := obtenerTokenAlmacenado(msg.Chat.ID)
+			b.buscarlibro(b.filtro, msg.Chat.ID, token)
+		} else {
+			b.buscarSinAuth(msg.Chat.ID, b.filtro)
+		}
 	}
 	b.filwait = false
 	b.filtro = ""

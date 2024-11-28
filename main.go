@@ -2,14 +2,13 @@ package main
 
 import (
 	"fmt"
-	"log"
-	"net/http"
-	"os"
-
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
 	"golang.org/x/oauth2"
 	"golang.org/x/oauth2/google"
 	"google.golang.org/api/books/v1"
+	"log"
+	"net/http"
+	"os"
 )
 
 const (
@@ -17,7 +16,7 @@ const (
 	RECOMENDACION   = "/recomendacion"
 	BUSQUEDA        = "/busqueda"
 	HISTORIAL       = "/historial"
-	GOOGLEBOOKS     = "/googlebooks"
+	GOOGLEBOOKS     = "/gbooks"
 	INFORME         = "/analisisbusqueda"
 	PERSONALIZACION = "/personalización"
 	TITULO          = "Titulo"
@@ -27,6 +26,10 @@ const (
 	RECOMENDACIONES = "Mis recomendaciones"
 	BUSQUEDAS       = "Mis Busquedas"
 	TERMINAR        = "Terminar"
+	FAVORITOS       = "Favoritos"
+	POR_LEER        = "Por Leer"
+	LEYENDO_AHORA   = "Leyendo Ahora"
+	NO_AGREGAR      = "No agregar"
 )
 
 type Bot struct {
@@ -35,6 +38,7 @@ type Bot struct {
 	filtro        string
 	filwait       bool
 	OAuthConfig   *oauth2.Config
+	autenticado   bool
 }
 
 /*func (b *Bot) getBotUsername() string {
@@ -67,6 +71,7 @@ func (b *Bot) manejarComando(id int64, msg string) { // maneja los comandos hist
 		b.API.Send(crearMenu(HISTORIAL, id))
 
 	case GOOGLEBOOKS:
+		b.interactuarGoogleBooks(id)
 
 		// sus botones
 		//b.interactuarGoogleBooks(msg, boton seleccionado )
@@ -131,7 +136,6 @@ func (b *Bot) onUpdateReceived(update tgbotapi.Update) { // lee los mensajes
 	//user := msg.From
 	// si se toca algun comando -> llamar a manejarComando
 	if msg.IsCommand() {
-
 		b.manejarComando(msg.Chat.ID, msg.Text)
 		return
 	}
@@ -151,7 +155,6 @@ func (b *Bot) onUpdateReceived(update tgbotapi.Update) { // lee los mensajes
 			b.API.Send(removerMenu)
 			return
 		}
-
 		removerMenu := RemoverMenu(msg.Chat.ID, "Filtros ingresados con exito")
 		b.API.Send(removerMenu)
 		b.realizarbusqueda(msg)
@@ -168,6 +171,16 @@ func (b *Bot) onUpdateReceived(update tgbotapi.Update) { // lee los mensajes
 		return
 	}
 
+	/*if (msg.Text == FAVORITOS || msg.Text == POR_LEER || msg.Text == LEYENDO_AHORA) && b.autenticado {
+
+		b.agregarLibro(msg.Chat.ID, msg.Text)
+	}
+
+	if msg.Text == NO_AGREGAR {
+		removerMenu := RemoverMenu(msg.Chat.ID, "No se agregara el libro a ninguna de esas estanterias")
+		b.API.Send(removerMenu)
+		return
+	}*/
 	if b.filwait {
 		b.filtro += "\"" + msg.Text + "\" "
 		return
