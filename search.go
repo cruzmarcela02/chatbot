@@ -163,7 +163,7 @@ func (b *Bot) realizarbusqueda(msg *tgbotapi.Message) {
 
 	} else {
 		if b.autenticado {
-			token, _ := obtenerTokenAlmacenado(msg.Chat.ID)
+			token, _ := b.obtenerTokenAlmacenado(msg.Chat.ID)
 			b.buscarlibro(b.filtro, msg.Chat.ID, token)
 		} else {
 			b.buscarSinAuth(msg.Chat.ID, b.filtro)

@@ -7,16 +7,23 @@ import (
 	"google.golang.org/api/books/v1"
 )
 
+const (
+	LEIDOS  = "4"
+	FAV     = "0"
+	LEER    = "2"
+	LEYENDO = "3"
+)
+
 func (b *Bot) interactuarGoogleBooks(id int64) {
 	// Verificar si el usuario está autenticado
-	_, err := obtenerTokenAlmacenado(id)
-	if err != nil {
+	token, err := b.obtenerTokenAlmacenado(id)
+	if err != nil || token.AccessToken == "" {
 		b.GoogleBooksAuth(id)
-	}
-	b.sendText(id, fmt.Sprintf("el valor de autenticado es: %s", b.autenticado))
-	if b.autenticado {
+	} else {
+		b.autenticado = true
 		b.API.Send(crearMenu(GOOGLEBOOKS, id))
 	}
+
 }
 
 func (b *Bot) buscarlibro(filtro string, id int64, token *oauth2.Token) {
@@ -55,34 +62,37 @@ func (b *Bot) buscarlibro(filtro string, id int64, token *oauth2.Token) {
 
 	b.sendText(id, fmt.Sprintf("El libro encontrado es %s.Descargalo en %s", titulo, downloadLink))
 
-	service.Mylibrary.Bookshelves.Volumes.List("4")
-	buffer := service.Mylibrary.Bookshelves.AddVolume("4", book.Id)
+	service.Mylibrary.Bookshelves.Volumes.List(LEIDOS)
+	buffer := service.Mylibrary.Bookshelves.AddVolume(LEIDOS, book.Id)
 	buffer.Do()
 	b.API.Send(CrearMenuAgregar(id))
 }
 
 func (b *Bot) agregarLibro(id int64, estanteria string) {
-	token, _ := obtenerTokenAlmacenado(id)
+	token, err := b.obtenerTokenAlmacenado(id)
+	if err != nil {
+		b.sendText(id, "Error al obtener el token almacenado: "+err.Error())
+		return
+	}
 	client := b.OAuthConfig.Client(context.Background(), token)
 	service, _ := books.New(client)
 
-	recuperarLibro := service.Mylibrary.Bookshelves.Volumes.List("4").MaxResults(1)
+	recuperarLibro := service.Mylibrary.Bookshelves.Volumes.List(LEIDOS).MaxResults(1)
 	llamado, _ := recuperarLibro.Do()
-
 	libro := llamado.Items[0]
 
 	if estanteria == FAVORITOS {
-		favoritos := service.Mylibrary.Bookshelves.AddVolume("0", libro.Id)
+		favoritos := service.Mylibrary.Bookshelves.AddVolume(FAV, libro.Id)
 		favoritos.Do()
 		b.sendText(id, fmt.Sprintf("El libro '%s' ha sido agregado a tus favoritos.", libro.VolumeInfo.Title))
 
 	} else if estanteria == POR_LEER {
-		porLeer := service.Mylibrary.Bookshelves.AddVolume("2", libro.Id)
+		porLeer := service.Mylibrary.Bookshelves.AddVolume(LEER, libro.Id)
 		porLeer.Do()
 		b.sendText(id, fmt.Sprintf("El libro '%s' ha sido agregado a tus libros por leer.", libro.VolumeInfo.Title))
 
 	} else if estanteria == LEYENDO_AHORA {
-		leyendo := service.Mylibrary.Bookshelves.AddVolume("3", libro.Id)
+		leyendo := service.Mylibrary.Bookshelves.AddVolume(LEYENDO, libro.Id)
 		leyendo.Do()
 		b.sendText(id, fmt.Sprintf("El libro '%s' ha sido agregado a tus libros que estas leyendo.", libro.VolumeInfo.Title))
 
