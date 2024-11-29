@@ -33,10 +33,6 @@ func (b *Bot) buscarlibro(filtro string, id int64, token *oauth2.Token) {
 		b.sendText(id, "Error al crear el cliente de Google Books: "+err.Error())
 		return
 	}
-
-	// Realizar la búsqueda
-	b.sendText(id, fmt.Sprintf("el cliente es %s", id))
-
 	call := service.Volumes.List(filtro).MaxResults(3)
 	resp, err := call.Do()
 	if err != nil {
@@ -86,12 +82,12 @@ func (b *Bot) agregarLibro(id int64, estanteria string) {
 		favoritos.Do()
 		b.sendText(id, fmt.Sprintf("El libro '%s' ha sido agregado a tus favoritos.", libro.VolumeInfo.Title))
 
-	} else if estanteria == POR_LEER {
+	} else if estanteria == PORLEER {
 		porLeer := service.Mylibrary.Bookshelves.AddVolume(LEER, libro.Id)
 		porLeer.Do()
 		b.sendText(id, fmt.Sprintf("El libro '%s' ha sido agregado a tus libros por leer.", libro.VolumeInfo.Title))
 
-	} else if estanteria == LEYENDO_AHORA {
+	} else if estanteria == LEYENDOAHORA {
 		leyendo := service.Mylibrary.Bookshelves.AddVolume(LEYENDO, libro.Id)
 		leyendo.Do()
 		b.sendText(id, fmt.Sprintf("El libro '%s' ha sido agregado a tus libros que estas leyendo.", libro.VolumeInfo.Title))

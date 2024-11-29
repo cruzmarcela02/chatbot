@@ -36,7 +36,6 @@ func (b *Bot) buscarSinAuth(id int64, filtro string) {
 		b.sendText(id, "No se encontraron libros.")
 		return
 	}
-
 	book := resp.Items[0]
 	completa := false
 	for _, item := range resp.Items {
@@ -50,10 +49,10 @@ func (b *Bot) buscarSinAuth(id int64, filtro string) {
 
 	b.sendText(id, fmt.Sprintf("El libro encontrado es %s.Descargalo en %s", titulo, downloadLink))
 	BookBD := BookBD{
-		Title: book.VolumeInfo.Title,
+		Title: titulo,
 		Link:  downloadLink,
 	}
-	b.saveSearchResult(BookBD)
+	b.saveSearchResult(BookBD, id)
 
 }
 
@@ -99,7 +98,7 @@ func (b *Bot) verHistorial(msg *tgbotapi.Message, filtro string) {
 
 	b.sendText(msg.Chat.ID, "Historial de tus busquedas")
 
-	books, err := b.getSavedSearchResults()
+	books, err := b.getSavedSearchResults(msg.Chat.ID)
 	if err != nil {
 		b.sendText(msg.Chat.ID, "Error al obtener el historial de búsquedas: "+err.Error())
 		return
@@ -150,26 +149,21 @@ func conseguirLink(firstBook *books.Volume) string {
 	return firstBook.VolumeInfo.PreviewLink
 }
 
-func (b *Bot) realizarbusqueda(msg *tgbotapi.Message) {
-	if !b.filwait {
-		removerMenu := RemoverMenu(msg.Chat.ID, "Se cancelo el proceso")
-		b.API.Send(removerMenu)
-		return
-	}
+func (b *Bot) realizarquery(msg *tgbotapi.Message) {
 
 	if b.Recomendacion {
-		if b.autenticado {
+		if b.autenticado && b.ultimoComando == GOOGLEBOOKS {
 			token, _ := b.obtenerTokenAlmacenado(msg.Chat.ID)
 			b.recomendarParaTi(msg.Chat.ID, token)
-
 		} else {
 			b.recomendarLibros(msg, b.filtro)
 		}
 
 	} else {
-		if b.autenticado {
+		if b.autenticado && b.ultimoComando == GOOGLEBOOKS {
 			token, _ := b.obtenerTokenAlmacenado(msg.Chat.ID)
 			b.buscarlibro(b.filtro, msg.Chat.ID, token)
+			b.ultimoComando = BUSQUEDA
 
 		} else {
 			b.buscarSinAuth(msg.Chat.ID, b.filtro)

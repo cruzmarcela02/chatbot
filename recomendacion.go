@@ -22,6 +22,7 @@ func (b *Bot) recomendarParaTi(id int64, token *oauth2.Token) {
 	}
 
 	bookShelves, _ := service.Mylibrary.Bookshelves.Volumes.List(COD_PARA_TI).Do()
+
 	if len(bookShelves.Items) == 0 {
 		b.sendText(id, "No hay libros para recomendar")
 		return

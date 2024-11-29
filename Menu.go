@@ -9,6 +9,8 @@ var (
 	MenuHistorial     = "Historial"
 	MenuGoogleBooks   = "Bienvenido a tu Google Books"
 	MenuAgregar       = "¿Deseas agregar el libro a alguna estanteria?"
+	MenuPersonalizar  = "Seleccione alguno de los filtros. Estos filtros globales se aplicaran a sus busquedas y recomendaciones que no sean dentro de " + GOOGLEBOOKS + " si asi lo desea."
+	menuFiltros       = "¿Que tipo de query desea realizar?"
 	// Button texts
 	recomendacion   = "Recomendacion"
 	busqueda        = "Busqueda"
@@ -29,6 +31,8 @@ func crearMenu(comando string, id int64) tgbotapi.MessageConfig {
 		return CrearMenuHistorial(id)
 	case GOOGLEBOOKS:
 		return CrearMenuGoogleBooks(id)
+	case PERSONALIZACION:
+		return CrearMenuPersonalizacion(id)
 	default:
 		return CrearMenuBusqueda(id)
 	}
@@ -117,10 +121,36 @@ func CrearMenuAgregar(id int64) tgbotapi.MessageConfig {
 	menuAgregar.ReplyMarkup = tgbotapi.NewReplyKeyboard(
 		tgbotapi.NewKeyboardButtonRow(
 			tgbotapi.NewKeyboardButton(FAVORITOS),
-			tgbotapi.NewKeyboardButton(POR_LEER),
-			tgbotapi.NewKeyboardButton(LEYENDO_AHORA),
-			tgbotapi.NewKeyboardButton(NO_AGREGAR),
+			tgbotapi.NewKeyboardButton(PORLEER),
+			tgbotapi.NewKeyboardButton(LEYENDOAHORA),
+			tgbotapi.NewKeyboardButton(NOAGREGAR),
 		),
 	)
 	return menuAgregar
+}
+func CrearMenuPersonalizacion(id int64) tgbotapi.MessageConfig {
+	menuPersonalizacion := tgbotapi.NewMessage(id, MenuPersonalizar)
+	menuPersonalizacion.ReplyMarkup = tgbotapi.NewReplyKeyboard(
+		tgbotapi.NewKeyboardButtonRow(
+			tgbotapi.NewKeyboardButton(AUTOR),
+			tgbotapi.NewKeyboardButton(GENERO),
+			tgbotapi.NewKeyboardButton(EDITORIAL),
+		),
+		tgbotapi.NewKeyboardButtonRow(
+			tgbotapi.NewKeyboardButton(TERMINAR),
+			tgbotapi.NewKeyboardButton(ELIMINARFILTROS),
+		),
+	)
+	return menuPersonalizacion
+}
+
+func CrearMenuFiltros(id int64) tgbotapi.MessageConfig {
+	tipoBusqueda := tgbotapi.NewMessage(id, menuFiltros)
+	tipoBusqueda.ReplyMarkup = tgbotapi.NewReplyKeyboard(
+		tgbotapi.NewKeyboardButtonRow(
+			tgbotapi.NewKeyboardButton(BUSQUEDAGLOBAL),
+			tgbotapi.NewKeyboardButton(BUSQUEDAPERSONALIZADA),
+		),
+	)
+	return tipoBusqueda
 }
