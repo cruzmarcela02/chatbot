@@ -55,6 +55,12 @@ func (b *Bot) manejarComando(id int64, msg string) { // maneja los comandos hist
 	switch msg {
 	case RECOMENDACION:
 		b.Recomendacion = true
+		if b.autenticado {
+			token, _ := b.obtenerTokenAlmacenado(id)
+			b.recomendarParaTi(id, token)
+			return
+		}
+
 		b.API.Send(crearMenu(RECOMENDACION, id))
 		// escuchar una nueva actualizacion
 		// nueva actualizacion -> set filtro

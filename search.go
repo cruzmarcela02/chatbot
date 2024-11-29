@@ -88,7 +88,6 @@ func (b *Bot) recomendarLibros(msg *tgbotapi.Message, filtro string) {
 		recomendacion += libro.VolumeInfo.Description
 
 		b.sendText(msg.Chat.ID, recomendacion)
-
 	}
 }
 
@@ -97,6 +96,7 @@ func (b *Bot) verHistorial(msg *tgbotapi.Message, filtro string) {
 		b.sendText(msg.Chat.ID, "Historial de tus recomendaciones")
 		return
 	}
+
 	b.sendText(msg.Chat.ID, "Historial de tus busquedas")
 
 	books, err := b.getSavedSearchResults()
@@ -112,7 +112,6 @@ func (b *Bot) verHistorial(msg *tgbotapi.Message, filtro string) {
 
 	b.sendText(msg.Chat.ID, "Historial de búsquedas:")
 	for i, book := range books {
-
 		b.sendText(msg.Chat.ID, fmt.Sprintf("%d. Titulo:%s , Link:%s ", i+1, book.Title, book.Link))
 	}
 }
@@ -159,16 +158,24 @@ func (b *Bot) realizarbusqueda(msg *tgbotapi.Message) {
 	}
 
 	if b.Recomendacion {
-		b.recomendarLibros(msg, b.filtro)
+		if b.autenticado {
+			token, _ := b.obtenerTokenAlmacenado(msg.Chat.ID)
+			b.recomendarParaTi(msg.Chat.ID, token)
+
+		} else {
+			b.recomendarLibros(msg, b.filtro)
+		}
 
 	} else {
 		if b.autenticado {
 			token, _ := b.obtenerTokenAlmacenado(msg.Chat.ID)
 			b.buscarlibro(b.filtro, msg.Chat.ID, token)
+
 		} else {
 			b.buscarSinAuth(msg.Chat.ID, b.filtro)
 		}
 	}
+
 	b.filwait = false
 	b.filtro = ""
 }
