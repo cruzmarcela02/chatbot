@@ -95,6 +95,7 @@ func (b *Bot) realizarquery(msg *tgbotapi.Message) {
 		if b.autenticado && b.ultimoComando == GOOGLEBOOKS {
 			token, _ := b.obtenerTokenAlmacenado(msg.Chat.ID)
 			b.recomendarParaTi(msg.Chat.ID, token)
+			b.ultimoComando = RECOMENDACION
 		} else {
 			b.recomendarLibros(msg, b.filtro)
 		}
