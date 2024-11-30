@@ -13,25 +13,29 @@ import (
 /* Muestra el historial del usuario, gb o chat */
 func (b *Bot) verHistorial(msg *tgbotapi.Message, filtro string, enGoogleBooks bool) {
 	if enGoogleBooks {
-		b.armarHistorialGoogleBooks(msg.Chat.ID, filtro)
+		b.mostrarHistorialGoogleBooks(msg.Chat.ID, filtro)
 		return
 	}
 
 	b.armarHistorial(msg, filtro)
 }
 
-// Historiales - GoogleBooks: Vistos Recientes o Leidos
-func (b *Bot) armarHistorialGoogleBooks(id int64, estanteria string) {
+/* Historiales - GoogleBooks: Vistos Recientes o Leidos */
+func (b *Bot) mostrarHistorialGoogleBooks(id int64, estanteria string) {
 	token, _ := b.obtenerTokenAlmacenado(id)
 	service := autenticarCliente(b, id, token)
 
 	if estanteria == VISTOS_RECIENTES {
+		historial := armarHistorialGoogleBooks(COD_VISTOS_RECIENTES, service)
 		b.sendText(id, "Historial de tus vistos recientes")
-		b.historialNavegacion(id, COD_VISTOS_RECIENTES, service)
-		return
+		b.sendText(id, historial)
+		//b.generarHistorialGoogleBooks(id, COD_VISTOS_RECIENTES, service)
+	} else {
+		historial := armarHistorialGoogleBooks(COD_LEIDOS, service)
+		b.sendText(id, "Historial de tus leidos")
+		b.sendText(id, historial)
+		//b.generarHistorialGoogleBooks(id, COD_LEIDOS, service)
 	}
-	b.sendText(id, "Historial de tus leidos")
-	b.historialNavegacion(id, COD_LEIDOS, service)
 }
 
 func autenticarCliente(b *Bot, id int64, token *oauth2.Token) *books.Service {
@@ -44,19 +48,21 @@ func autenticarCliente(b *Bot, id int64, token *oauth2.Token) *books.Service {
 	return service
 }
 
-// Recently Viewed: 6
-func (b *Bot) historialNavegacion(id int64, cod_estanteria string, service *books.Service) {
+/* Retorna un string con el historial armado */
+func armarHistorialGoogleBooks(cod_estanteria string, service *books.Service) string {
 	var historial string
 
-	// Chequeamos los Recientemente vistos
 	bookshelf, err := service.Mylibrary.Bookshelves.Volumes.List(cod_estanteria).Do()
 	if err != nil {
-		b.sendText(id, "SURGIO UN ERROR: "+err.Error())
+		historial = "SURGIO UN ERROR: " + err.Error()
+		return historial
+		//b.sendText(id, "SURGIO UN ERROR: "+err.Error())
 	}
 
 	if len(bookshelf.Items) == 0 {
-		b.sendText(id, "Estanteria vacia")
-		return
+		historial = "Estanteria vacia"
+		return historial
+		//b.sendText(id, "Estanteria vacia")
 	}
 
 	for i, libro := range bookshelf.Items {
@@ -65,7 +71,8 @@ func (b *Bot) historialNavegacion(id int64, cod_estanteria string, service *book
 		historial += libro.VolumeInfo.Title
 		historial += "\n"
 	}
-	b.sendText(id, historial)
+
+	return historial
 }
 
 // Historial del chat. Fuera de google books

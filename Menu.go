@@ -160,7 +160,7 @@ func CrearMenuPersonalizacion(id int64) tgbotapi.MessageConfig {
 		),
 		tgbotapi.NewKeyboardButtonRow(
 			tgbotapi.NewKeyboardButton(TERMINAR),
-			tgbotapi.NewKeyboardButton(ELIMINARFILTROS),
+			tgbotapi.NewKeyboardButton(ELIMINAR_FILTROS),
 		),
 	)
 	return menuPersonalizacion
@@ -170,8 +170,8 @@ func CrearMenuFiltros(id int64) tgbotapi.MessageConfig {
 	tipoBusqueda := tgbotapi.NewMessage(id, menuFiltros)
 	tipoBusqueda.ReplyMarkup = tgbotapi.NewReplyKeyboard(
 		tgbotapi.NewKeyboardButtonRow(
-			tgbotapi.NewKeyboardButton(BUSQUEDAGLOBAL),
-			tgbotapi.NewKeyboardButton(BUSQUEDAPERSONALIZADA),
+			tgbotapi.NewKeyboardButton(BUSQUEDA_GLOBAL),
+			tgbotapi.NewKeyboardButton(BUSQUEDA_PERSONALIZADA),
 		),
 	)
 	return tipoBusqueda

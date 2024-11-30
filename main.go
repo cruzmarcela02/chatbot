@@ -13,23 +13,23 @@ import (
 )
 
 const (
-	START                 = "/start"
-	RECOMENDACION         = "/recomendacion"
-	BUSQUEDA              = "/busqueda"
-	HISTORIAL             = "/historial"
-	GOOGLEBOOKS           = "/gbooks"
-	INFORME               = "/analisisbusqueda"
-	PERSONALIZACION       = "/personalizar"
-	TITULO                = "Titulo"
-	AUTOR                 = "Autor"
-	EDITORIAL             = "Editorial"
-	GENERO                = "Genero"
-	RECOMENDACIONES       = "Mis recomendaciones"
-	BUSQUEDAS             = "Mis Busquedas"
-	TERMINAR              = "Terminar"
-	ELIMINARFILTROS       = "Eliminar Filtros"
-	BUSQUEDAGLOBAL        = "Aplicando filtros globales"
-	BUSQUEDAPERSONALIZADA = "Sin aplicar filtros globales"
+	START                  = "/start"
+	RECOMENDACION          = "/recomendacion"
+	BUSQUEDA               = "/busqueda"
+	HISTORIAL              = "/historial"
+	GOOGLEBOOKS            = "/gbooks"
+	INFORME                = "/analisisbusqueda"
+	PERSONALIZACION        = "/personalizar"
+	TITULO                 = "Titulo"
+	AUTOR                  = "Autor"
+	EDITORIAL              = "Editorial"
+	GENERO                 = "Genero"
+	RECOMENDACIONES        = "Mis recomendaciones"
+	BUSQUEDAS              = "Mis Busquedas"
+	TERMINAR               = "Terminar"
+	ELIMINAR_FILTROS       = "Eliminar Filtros"
+	BUSQUEDA_GLOBAL        = "Aplicando filtros globales"
+	BUSQUEDA_PERSONALIZADA = "Sin aplicar filtros globales"
 )
 
 type Bot struct {
@@ -85,30 +85,31 @@ func (b *Bot) manejarComando(id int64, msg string) { // maneja los comandos hist
 		// informar que boton se toco
 	}
 	b.ultimoComando = msg
-
 }
 
 // comandos
 func (b *Bot) onUpdateReceived(update tgbotapi.Update) { // lee los mensajes
 	msg := update.Message
 	id := msg.Chat.ID
+
 	if msg.IsCommand() {
 		b.manejarComando(id, msg.Text)
 		b.ultimoComando = msg.Text
 		return
 	}
-	if msg.Text == BUSQUEDAGLOBAL {
+
+	if msg.Text == BUSQUEDA_GLOBAL {
 		b.BusquedaFiltroGlobal(msg)
 		return
 	}
 
-	if msg.Text == BUSQUEDAPERSONALIZADA {
+	if msg.Text == BUSQUEDA_PERSONALIZADA {
 		b.sendText(id, "No se aplicaran sus filtros globales")
 		b.API.Send(crearMenu(BUSQUEDA, id, false))
 		return
 	}
 
-	if msg.Text == ELIMINARFILTROS {
+	if msg.Text == ELIMINAR_FILTROS {
 		eliminarFiltrosBD(id)
 		b.sendText(id, "Todos sus filtros globales han sido eliminados")
 	}
