@@ -74,7 +74,6 @@ func (b *Bot) manejarComando(id int64, msg string) { // maneja los comandos hist
 		b.API.Send(crearMenu(START, id, false))
 		// informar que boton se toco
 	}
-	b.ultimoComando = msg
 }
 
 // comandos
@@ -173,10 +172,15 @@ func (b *Bot) onCallbackQuery(update tgbotapi.Update) {
 
 	if callback != nil {
 		data := callback.Data
-		// es un camnando -> estamos en el /start
+
+		b.sendText(callback.Message.Chat.ID, "Se ha seleccionado: "+data)
 		if data == RECOMENDACION || data == BUSQUEDA || data == HISTORIAL || data == GOOGLEBOOKS || data == PERSONALIZACION { // lo dejamos o lo hacemos menu adentro del teclado
 			b.manejarComando(update.CallbackQuery.Message.Chat.ID, update.CallbackQuery.Data)
 		}
+		if data == GOOGLEBOOKS {
+			b.ultimoComando = GOOGLEBOOKS
+		}
+
 	}
 }
 

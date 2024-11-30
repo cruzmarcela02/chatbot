@@ -74,6 +74,7 @@ func (b *Bot) buscarlibro(filtro string, id int64, token *oauth2.Token) {
 	service.Mylibrary.Bookshelves.Volumes.List(COD_LEIDOS)
 	buffer := service.Mylibrary.Bookshelves.AddVolume(COD_LEIDOS, book.Id)
 	buffer.Do()
+
 	b.API.Send(CrearMenuAgregar(id))
 }
 
