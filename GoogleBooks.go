@@ -14,6 +14,7 @@ const (
 	COD_LEYENDO          = "3"
 	COD_LEIDOS           = "4"
 	COD_VISTOS_RECIENTES = "6"
+	COD_PARA_TI          = "8"
 	COD_NAVEGACION       = "9"
 
 	FAVORITOS        = "Favoritos"
@@ -21,6 +22,7 @@ const (
 	LEYENDO_AHORA    = "Leyendo Ahora"
 	LEIDOS           = "Leidos"
 	VISTOS_RECIENTES = "Vistos Recientes"
+	LIBROS_PARA_TI   = "Libros para ti"
 	NAVEGACION       = "De navegación"
 	NO_AGREGAR       = "No agregar"
 )

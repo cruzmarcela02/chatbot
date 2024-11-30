@@ -3,7 +3,6 @@ package main
 import (
 	"fmt"
 	"net/http"
-	"strconv"
 
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
 	"google.golang.org/api/books/v1"
@@ -54,40 +53,6 @@ func (b *Bot) buscarSinAuth(id int64, filtro string) {
 	}
 	b.saveSearchResult(BookBD, id)
 
-}
-
-func (b *Bot) recomendarLibros(msg *tgbotapi.Message, filtro string) {
-	client := &http.Client{}
-	service, err := books.New(client)
-	if err != nil {
-		b.sendText(msg.Chat.ID, "Error al crear el cliente de Google Books: "+err.Error())
-		return
-	}
-	call := service.Volumes.List(filtro).MaxResults(3)
-	resp, err := call.Do()
-
-	if err != nil {
-		b.sendText(msg.Chat.ID, "Error al buscar libros: "+err.Error())
-		return
-	}
-
-	if len(resp.Items) == 0 {
-		b.sendText(msg.Chat.ID, "No se encontraron libros.")
-		return
-	}
-
-	b.sendText(msg.Chat.ID, "Te recomendamos los siguientes libros: ")
-
-	for i, libro := range resp.Items {
-		var recomendacion string
-		recomendacion += strconv.Itoa(i + 1)
-		recomendacion += ". "
-		recomendacion += libro.VolumeInfo.Title
-		recomendacion += "\n"
-		recomendacion += libro.VolumeInfo.Description
-
-		b.sendText(msg.Chat.ID, recomendacion)
-	}
 }
 
 func conseguirLink(firstBook *books.Volume) string {

@@ -4,7 +4,6 @@ import (
 	"log"
 	"net/http"
 	"os"
-	"strconv"
 
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
 	"golang.org/x/oauth2"
@@ -46,16 +45,13 @@ type Bot struct {
 func (b *Bot) manejarComando(id int64, msg string) { // maneja los comandos historial, personalizacion e informe
 	b.Recomendacion = false
 	b.filtroGLobal = false
+	enGoogleBooks := b.autenticado && b.ultimoComando == GOOGLEBOOKS
 
 	switch msg {
 	case RECOMENDACION:
 		b.Recomendacion = true
-		if b.autenticado && b.ultimoComando == GOOGLEBOOKS {
-			token, _ := b.obtenerTokenAlmacenado(id)
-			b.recomendarParaTi(id, token)
-		} else {
-			b.API.Send(crearMenu(RECOMENDACION, id, false))
-		}
+		b.Recomendar(id, enGoogleBooks)
+
 	case BUSQUEDA:
 		if b.autenticado && b.ultimoComando == GOOGLEBOOKS {
 			b.API.Send(crearMenu(BUSQUEDA, id, true))
@@ -63,17 +59,11 @@ func (b *Bot) manejarComando(id int64, msg string) { // maneja los comandos hist
 			b.API.Send(CrearMenuFiltros(id))
 		}
 	case HISTORIAL:
-		b.sendText(id, "el ultimo comando es: "+b.ultimoComando)
-		b.sendText(id, "estamos autenticados?: "+strconv.FormatBool(b.autenticado))
-		if b.autenticado && b.ultimoComando == GOOGLEBOOKS {
-			b.sendText(id, "Historial para gbooks")
-			b.API.Send(crearMenu(HISTORIAL, id, true))
-		} else {
-			b.sendText(id, "Historial comun")
-			b.API.Send(crearMenu(HISTORIAL, id, false))
-		}
+		b.MostrarMenuHistorial(id, enGoogleBooks)
+
 	case GOOGLEBOOKS:
 		b.interactuarGoogleBooks(id)
+
 	case INFORME:
 		// realizar informe con todas las busquedas y las recomendaciones del ultimo mes
 

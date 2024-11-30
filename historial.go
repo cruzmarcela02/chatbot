@@ -10,6 +10,18 @@ import (
 	"google.golang.org/api/books/v1"
 )
 
+/* Envia las opciones de historiales posibles */
+func (b *Bot) MostrarMenuHistorial(id int64, enGoogleBooks bool) {
+	if enGoogleBooks {
+		b.sendText(id, "Historial para gbooks")
+		b.API.Send(crearMenu(HISTORIAL, id, enGoogleBooks))
+		return
+	}
+
+	b.sendText(id, "Historial comun")
+	b.API.Send(crearMenu(HISTORIAL, id, enGoogleBooks))
+}
+
 /* Muestra el historial del usuario, gb o chat */
 func (b *Bot) verHistorial(msg *tgbotapi.Message, filtro string, enGoogleBooks bool) {
 	if enGoogleBooks {
@@ -29,12 +41,12 @@ func (b *Bot) mostrarHistorialGoogleBooks(id int64, estanteria string) {
 		historial := armarHistorialGoogleBooks(COD_VISTOS_RECIENTES, service)
 		b.sendText(id, "Historial de tus vistos recientes")
 		b.sendText(id, historial)
-		//b.generarHistorialGoogleBooks(id, COD_VISTOS_RECIENTES, service)
+
 	} else {
 		historial := armarHistorialGoogleBooks(COD_LEIDOS, service)
 		b.sendText(id, "Historial de tus leidos")
 		b.sendText(id, historial)
-		//b.generarHistorialGoogleBooks(id, COD_LEIDOS, service)
+
 	}
 }
 
@@ -56,13 +68,11 @@ func armarHistorialGoogleBooks(cod_estanteria string, service *books.Service) st
 	if err != nil {
 		historial = "SURGIO UN ERROR: " + err.Error()
 		return historial
-		//b.sendText(id, "SURGIO UN ERROR: "+err.Error())
 	}
 
 	if len(bookshelf.Items) == 0 {
 		historial = "Estanteria vacia"
 		return historial
-		//b.sendText(id, "Estanteria vacia")
 	}
 
 	for i, libro := range bookshelf.Items {
