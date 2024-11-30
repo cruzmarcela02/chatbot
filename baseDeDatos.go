@@ -104,7 +104,7 @@ func eliminarFiltrosBD(id int64) error {
 	return err
 }
 
-func obtenerRecomendaciones(id int64) ([]BookBD, error) {
+func (b *Bot) obtenerRecomendaciones(id int64) ([]BookBD, error) {
 	client, err := initializeFirebase()
 	if err != nil {
 	}
@@ -122,17 +122,16 @@ func obtenerRecomendaciones(id int64) ([]BookBD, error) {
 	return recomendaciones, nil
 }
 
-func guardarRecomendaciones(books []BookBD, id int64) error {
+func (b *Bot) guardarRecomendaciones(book BookBD, id int64) error {
 	client, err := initializeFirebase()
 	if err != nil {
 		return err
 	}
 
 	ref := client.NewRef(fmt.Sprintf("recomendaciones/%d", id))
-	for _, book := range books {
-		if _, err := ref.Push(context.Background(), book); err != nil {
-			return fmt.Errorf("error saving recomendaciones: %v", err)
-		}
+	if _, err := ref.Push(context.Background(), book); err != nil {
+		return fmt.Errorf("error saving recomendaciones: %v", err)
 	}
+
 	return nil
 }

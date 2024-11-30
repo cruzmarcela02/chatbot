@@ -82,5 +82,12 @@ func (b *Bot) recomendarLibros(msg *tgbotapi.Message, filtro string) {
 		recomendacion += libro.VolumeInfo.Description
 
 		b.sendText(msg.Chat.ID, recomendacion)
+		downloadLink := conseguirLink(libro)
+		BookBD := BookBD{
+			Title: libro.VolumeInfo.Title,
+			Link:  downloadLink,
+		}
+		b.guardarRecomendaciones(BookBD, msg.Chat.ID)
 	}
+
 }

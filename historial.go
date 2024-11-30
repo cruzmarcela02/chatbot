@@ -89,6 +89,13 @@ func armarHistorialGoogleBooks(cod_estanteria string, service *books.Service) st
 func (b *Bot) armarHistorial(msg *tgbotapi.Message, filtro string) {
 	if filtro == RECOMENDACIONES {
 		b.sendText(msg.Chat.ID, "Historial de tus recomendaciones")
+		recomendaciones, err := b.obtenerRecomendaciones(msg.Chat.ID)
+		if err != nil {
+
+		}
+		for i, recomendacion := range recomendaciones {
+			b.sendText(msg.Chat.ID, fmt.Sprintf("%d. Titulo:%s\n Link:%s ", i+1, recomendacion.Title, recomendacion.Link))
+		}
 		return
 	}
 	b.sendText(msg.Chat.ID, "Historial de tus busquedas")
