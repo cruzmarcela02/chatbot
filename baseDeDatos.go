@@ -103,3 +103,36 @@ func eliminarFiltrosBD(id int64) error {
 	err = ref.Delete(context.Background())
 	return err
 }
+
+func obtenerRecomendaciones(id int64) ([]BookBD, error) {
+	client, err := initializeFirebase()
+	if err != nil {
+	}
+
+	ref := client.NewRef(fmt.Sprintf("recomendaciones/%d", id))
+	var recomendacionesMap map[string]BookBD
+	if err := ref.Get(context.Background(), &recomendacionesMap); err != nil {
+		return nil, fmt.Errorf("error retrieving recomendaciones: %v", err)
+	}
+
+	var recomendaciones []BookBD
+	for _, recomendacion := range recomendacionesMap {
+		recomendaciones = append(recomendaciones, recomendacion)
+	}
+	return recomendaciones, nil
+}
+
+func guardarRecomendaciones(books []BookBD, id int64) error {
+	client, err := initializeFirebase()
+	if err != nil {
+		return err
+	}
+
+	ref := client.NewRef(fmt.Sprintf("recomendaciones/%d", id))
+	for _, book := range books {
+		if _, err := ref.Push(context.Background(), book); err != nil {
+			return fmt.Errorf("error saving recomendaciones: %v", err)
+		}
+	}
+	return nil
+}
