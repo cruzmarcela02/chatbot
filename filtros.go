@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
 )
 
@@ -46,6 +47,5 @@ func (b *Bot) BusquedaFiltroGlobal(msg *tgbotapi.Message) {
 	b.filtro += filtrosGlobales + " "
 	b.sendText(msg.Chat.ID, "Sus filtros globales van a ser aplicados "+b.filtro)
 	b.sendText(msg.Chat.ID, "El ultimo comando fue "+b.ultimoComando)
-	b.API.Send(crearMenu(BUSQUEDA, msg.Chat.ID))
-	return
+	b.API.Send(crearMenu(BUSQUEDA, msg.Chat.ID, false))
 }

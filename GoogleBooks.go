@@ -3,15 +3,26 @@ package main
 import (
 	"context"
 	"fmt"
+
 	"golang.org/x/oauth2"
 	"google.golang.org/api/books/v1"
 )
 
 const (
-	LEIDOS  = "4"
-	FAV     = "0"
-	LEER    = "2"
-	LEYENDO = "3"
+	COD_FAVORITOS        = "0"
+	COD_LEER             = "2"
+	COD_LEYENDO          = "3"
+	COD_LEIDOS           = "4"
+	COD_VISTOS_RECIENTES = "6"
+	COD_NAVEGACION       = "9"
+
+	FAVORITOS        = "Favoritos"
+	POR_LEER         = "Por Leer"
+	LEYENDO_AHORA    = "Leyendo Ahora"
+	LEIDOS           = "Leidos"
+	VISTOS_RECIENTES = "Vistos Recientes"
+	NAVEGACION       = "De navegación"
+	NO_AGREGAR       = "No agregar"
 )
 
 func (b *Bot) interactuarGoogleBooks(id int64) {
@@ -21,7 +32,7 @@ func (b *Bot) interactuarGoogleBooks(id int64) {
 		b.GoogleBooksAuth(id)
 	} else {
 		b.autenticado = true
-		b.API.Send(crearMenu(GOOGLEBOOKS, id))
+		b.API.Send(crearMenu(GOOGLEBOOKS, id, false))
 	}
 
 }
@@ -58,8 +69,8 @@ func (b *Bot) buscarlibro(filtro string, id int64, token *oauth2.Token) {
 
 	b.sendText(id, fmt.Sprintf("El libro encontrado es %s.Descargalo en %s", titulo, downloadLink))
 
-	service.Mylibrary.Bookshelves.Volumes.List(LEIDOS)
-	buffer := service.Mylibrary.Bookshelves.AddVolume(LEIDOS, book.Id)
+	service.Mylibrary.Bookshelves.Volumes.List(COD_LEIDOS)
+	buffer := service.Mylibrary.Bookshelves.AddVolume(COD_LEIDOS, book.Id)
 	buffer.Do()
 	b.API.Send(CrearMenuAgregar(id))
 }
@@ -73,22 +84,22 @@ func (b *Bot) agregarLibro(id int64, estanteria string) {
 	client := b.OAuthConfig.Client(context.Background(), token)
 	service, _ := books.New(client)
 
-	recuperarLibro := service.Mylibrary.Bookshelves.Volumes.List(LEIDOS).MaxResults(1)
+	recuperarLibro := service.Mylibrary.Bookshelves.Volumes.List(COD_LEIDOS).MaxResults(1)
 	llamado, _ := recuperarLibro.Do()
 	libro := llamado.Items[0]
 
 	if estanteria == FAVORITOS {
-		favoritos := service.Mylibrary.Bookshelves.AddVolume(FAV, libro.Id)
+		favoritos := service.Mylibrary.Bookshelves.AddVolume(COD_FAVORITOS, libro.Id)
 		favoritos.Do()
 		b.sendText(id, fmt.Sprintf("El libro '%s' ha sido agregado a tus favoritos.", libro.VolumeInfo.Title))
 
-	} else if estanteria == PORLEER {
-		porLeer := service.Mylibrary.Bookshelves.AddVolume(LEER, libro.Id)
+	} else if estanteria == POR_LEER {
+		porLeer := service.Mylibrary.Bookshelves.AddVolume(COD_LEER, libro.Id)
 		porLeer.Do()
 		b.sendText(id, fmt.Sprintf("El libro '%s' ha sido agregado a tus libros por leer.", libro.VolumeInfo.Title))
 
-	} else if estanteria == LEYENDOAHORA {
-		leyendo := service.Mylibrary.Bookshelves.AddVolume(LEYENDO, libro.Id)
+	} else if estanteria == LEYENDO_AHORA {
+		leyendo := service.Mylibrary.Bookshelves.AddVolume(COD_LEYENDO, libro.Id)
 		leyendo.Do()
 		b.sendText(id, fmt.Sprintf("El libro '%s' ha sido agregado a tus libros que estas leyendo.", libro.VolumeInfo.Title))
 

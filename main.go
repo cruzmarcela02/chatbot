@@ -1,13 +1,15 @@
 package main
 
 import (
+	"log"
+	"net/http"
+	"os"
+	"strconv"
+
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
 	"golang.org/x/oauth2"
 	"golang.org/x/oauth2/google"
 	"google.golang.org/api/books/v1"
-	"log"
-	"net/http"
-	"os"
 )
 
 const (
@@ -25,10 +27,6 @@ const (
 	RECOMENDACIONES       = "Mis recomendaciones"
 	BUSQUEDAS             = "Mis Busquedas"
 	TERMINAR              = "Terminar"
-	FAVORITOS             = "Favoritos"
-	PORLEER               = "Por Leer"
-	LEYENDOAHORA          = "Leyendo Ahora"
-	NOAGREGAR             = "No agregar"
 	ELIMINARFILTROS       = "Eliminar Filtros"
 	BUSQUEDAGLOBAL        = "Aplicando filtros globales"
 	BUSQUEDAPERSONALIZADA = "Sin aplicar filtros globales"
@@ -48,36 +46,45 @@ type Bot struct {
 func (b *Bot) manejarComando(id int64, msg string) { // maneja los comandos historial, personalizacion e informe
 	b.Recomendacion = false
 	b.filtroGLobal = false
+
 	switch msg {
 	case RECOMENDACION:
 		b.Recomendacion = true
-		if b.autenticado {
+		if b.autenticado && b.ultimoComando == GOOGLEBOOKS {
 			token, _ := b.obtenerTokenAlmacenado(id)
 			b.recomendarParaTi(id, token)
-			return
+		} else {
+			b.API.Send(crearMenu(RECOMENDACION, id, false))
 		}
-		b.API.Send(crearMenu(RECOMENDACION, id))
 	case BUSQUEDA:
 		if b.autenticado && b.ultimoComando == GOOGLEBOOKS {
-			b.API.Send(crearMenu(BUSQUEDA, id))
+			b.API.Send(crearMenu(BUSQUEDA, id, true))
 		} else {
 			b.API.Send(CrearMenuFiltros(id))
 		}
 	case HISTORIAL:
-		b.API.Send(crearMenu(HISTORIAL, id))
-
+		b.sendText(id, "el ultimo comando es: "+b.ultimoComando)
+		b.sendText(id, "estamos autenticados?: "+strconv.FormatBool(b.autenticado))
+		if b.autenticado && b.ultimoComando == GOOGLEBOOKS {
+			b.sendText(id, "Historial para gbooks")
+			b.API.Send(crearMenu(HISTORIAL, id, true))
+		} else {
+			b.sendText(id, "Historial comun")
+			b.API.Send(crearMenu(HISTORIAL, id, false))
+		}
 	case GOOGLEBOOKS:
 		b.interactuarGoogleBooks(id)
 	case INFORME:
 		// realizar informe con todas las busquedas y las recomendaciones del ultimo mes
 
 	case PERSONALIZACION:
-		b.API.Send(crearMenu(PERSONALIZACION, id))
+		b.API.Send(crearMenu(PERSONALIZACION, id, false))
 		b.filtroGLobal = true
 	default:
-		b.API.Send(crearMenu(START, id))
+		b.API.Send(crearMenu(START, id, false))
 		// informar que boton se toco
 	}
+	b.ultimoComando = msg
 
 }
 
@@ -97,7 +104,7 @@ func (b *Bot) onUpdateReceived(update tgbotapi.Update) { // lee los mensajes
 
 	if msg.Text == BUSQUEDAPERSONALIZADA {
 		b.sendText(id, "No se aplicaran sus filtros globales")
-		b.API.Send(crearMenu(BUSQUEDA, id))
+		b.API.Send(crearMenu(BUSQUEDA, id, false))
 		return
 	}
 
@@ -109,7 +116,14 @@ func (b *Bot) onUpdateReceived(update tgbotapi.Update) { // lee los mensajes
 	if msg.Text == RECOMENDACIONES || msg.Text == BUSQUEDAS {
 		removerMenu := RemoverMenu(id, "Queres ver el historial: "+msg.Text)
 		b.API.Send(removerMenu)
-		b.verHistorial(msg, msg.Text)
+		b.verHistorial(msg, msg.Text, false)
+		return
+	}
+
+	if msg.Text == LEIDOS || msg.Text == VISTOS_RECIENTES {
+		removerMenu := RemoverMenu(id, "Queres ver el historial: "+msg.Text)
+		b.API.Send(removerMenu)
+		b.verHistorial(msg, msg.Text, true)
 		return
 	}
 
@@ -135,7 +149,7 @@ func (b *Bot) onUpdateReceived(update tgbotapi.Update) { // lee los mensajes
 		return
 	}
 
-	if (msg.Text == FAVORITOS || msg.Text == PORLEER || msg.Text == LEYENDOAHORA || msg.Text == NOAGREGAR) && b.autenticado {
+	if (msg.Text == FAVORITOS || msg.Text == POR_LEER || msg.Text == LEYENDO_AHORA || msg.Text == NO_AGREGAR) && b.autenticado {
 		removerMenu := RemoverMenu(msg.Chat.ID, "Su opereacion se realizo con exito")
 		b.API.Send(removerMenu)
 		b.agregarLibro(msg.Chat.ID, msg.Text)

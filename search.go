@@ -90,31 +90,6 @@ func (b *Bot) recomendarLibros(msg *tgbotapi.Message, filtro string) {
 	}
 }
 
-func (b *Bot) verHistorial(msg *tgbotapi.Message, filtro string) {
-	if filtro == RECOMENDACIONES {
-		b.sendText(msg.Chat.ID, "Historial de tus recomendaciones")
-		return
-	}
-
-	b.sendText(msg.Chat.ID, "Historial de tus busquedas")
-
-	books, err := b.getSavedSearchResults(msg.Chat.ID)
-	if err != nil {
-		b.sendText(msg.Chat.ID, "Error al obtener el historial de búsquedas: "+err.Error())
-		return
-	}
-
-	if len(books) == 0 {
-		b.sendText(msg.Chat.ID, "No se encontraron resultados de búsqueda guardados.")
-		return
-	}
-
-	b.sendText(msg.Chat.ID, "Historial de búsquedas:")
-	for i, book := range books {
-		b.sendText(msg.Chat.ID, fmt.Sprintf("%d. Titulo:%s , Link:%s ", i+1, book.Title, book.Link))
-	}
-}
-
 func conseguirLink(firstBook *books.Volume) string {
 	/*
 		if firstBook.AccessInfo.Epub.IsAvailable != false {

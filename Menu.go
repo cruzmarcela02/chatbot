@@ -20,7 +20,7 @@ var (
 	personalización = "Personalización"
 )
 
-func crearMenu(comando string, id int64) tgbotapi.MessageConfig {
+func crearMenu(comando string, id int64, enGoogleBooks bool) tgbotapi.MessageConfig {
 
 	switch comando {
 	case START:
@@ -28,7 +28,7 @@ func crearMenu(comando string, id int64) tgbotapi.MessageConfig {
 	case RECOMENDACION:
 		return CrearMenuRecomendar(id)
 	case HISTORIAL:
-		return CrearMenuHistorial(id)
+		return CrearMenuHistorial(id, enGoogleBooks)
 	case GOOGLEBOOKS:
 		return CrearMenuGoogleBooks(id)
 	case PERSONALIZACION:
@@ -87,15 +87,36 @@ func CrearMenuRecomendar(id int64) tgbotapi.MessageConfig {
 	return recomendar
 }
 
-func CrearMenuHistorial(id int64) tgbotapi.MessageConfig {
-	verHistorial := tgbotapi.NewMessage(id, MenuHistorial)
-	verHistorial.ReplyMarkup = tgbotapi.NewReplyKeyboard(
+func CrearMenuHistorial(id int64, enGoogleBooks bool) tgbotapi.MessageConfig {
+	if enGoogleBooks {
+		return CrearMenuHistorialGoogleBooks(id)
+	}
+
+	return CrearMenuHistorialComun(id)
+}
+
+func CrearMenuHistorialComun(id int64) tgbotapi.MessageConfig {
+	menuHistorial := tgbotapi.NewMessage(id, MenuHistorial)
+	menuHistorial.ReplyMarkup = tgbotapi.NewReplyKeyboard(
 		tgbotapi.NewKeyboardButtonRow(
 			tgbotapi.NewKeyboardButton(BUSQUEDAS),
 			tgbotapi.NewKeyboardButton(RECOMENDACIONES),
 		),
 	)
-	return verHistorial
+
+	return menuHistorial
+}
+
+func CrearMenuHistorialGoogleBooks(id int64) tgbotapi.MessageConfig {
+	menuHistorial := tgbotapi.NewMessage(id, MenuHistorial)
+	menuHistorial.ReplyMarkup = tgbotapi.NewReplyKeyboard(
+		tgbotapi.NewKeyboardButtonRow(
+			tgbotapi.NewKeyboardButton(VISTOS_RECIENTES),
+			tgbotapi.NewKeyboardButton(LEIDOS),
+		),
+	)
+
+	return menuHistorial
 }
 
 func RemoverMenu(id int64, mensaje string) tgbotapi.MessageConfig {
@@ -121,13 +142,14 @@ func CrearMenuAgregar(id int64) tgbotapi.MessageConfig {
 	menuAgregar.ReplyMarkup = tgbotapi.NewReplyKeyboard(
 		tgbotapi.NewKeyboardButtonRow(
 			tgbotapi.NewKeyboardButton(FAVORITOS),
-			tgbotapi.NewKeyboardButton(PORLEER),
-			tgbotapi.NewKeyboardButton(LEYENDOAHORA),
-			tgbotapi.NewKeyboardButton(NOAGREGAR),
+			tgbotapi.NewKeyboardButton(POR_LEER),
+			tgbotapi.NewKeyboardButton(LEYENDO_AHORA),
+			tgbotapi.NewKeyboardButton(NO_AGREGAR),
 		),
 	)
 	return menuAgregar
 }
+
 func CrearMenuPersonalizacion(id int64) tgbotapi.MessageConfig {
 	menuPersonalizacion := tgbotapi.NewMessage(id, MenuPersonalizar)
 	menuPersonalizacion.ReplyMarkup = tgbotapi.NewReplyKeyboard(
