@@ -80,6 +80,8 @@ func (b *Bot) recomendarLibros(msg *tgbotapi.Message, filtro string) {
 		recomendacion += libro.VolumeInfo.Title
 		recomendacion += "\n"
 		recomendacion += libro.VolumeInfo.Description
+		recomendacion += "\n"
+		recomendacion += libro.VolumeInfo.InfoLink
 
 		b.sendText(msg.Chat.ID, recomendacion)
 		downloadLink := conseguirLink(libro)
