@@ -113,37 +113,3 @@ func (b *Bot) agregarLibro(id int64, estanteria string) {
 	buffer.Do()
 
 }
-
-/*call := service.Volumes.List(busqueda).MaxResults(5)
-	resp, err := call.Do()
-	if err != nil {
-		b.sendText(msg.Chat.ID, "Error al buscar libros: "+err.Error())
-		return
-	}
-
-	if len(resp.Items) == 0 {
-		b.sendText(msg.Chat.ID, "No se encontraron libros.")
-		return
-	}
-
-	// Mostrar los resultados y pedir al usuario que elija un libro
-	for i, item := range resp.Items {
-		b.sendText(msg.Chat.ID, fmt.Sprintf("%d. %s por %s", i+1, item.VolumeInfo.Title, item.VolumeInfo.Authors[0]))
-	}
-	b.sendText(msg.Chat.ID, "Por favor, elige un número de libro para agregar a tu bookshelf:")
-
-	// Aquí deberías implementar una lógica para esperar la respuesta del usuario
-	// Por ahora, elegiremos el primer libro para el ejemplo
-	libroElegido := resp.Items[0]
-
-	// Agregar el libro al bookshelf del usuario
-	_, err = service.Mylibrary.Bookshelves.AddVolume("0", libroElegido.Id).Do()
-	if err != nil {
-		b.sendText(msg.Chat.ID, "Error al agregar el libro a tu bookshelf: "+err.Error())
-		return
-	}
-
-	b.sendText(msg.Chat.ID, fmt.Sprintf("El libro '%s' ha sido agregado a tu bookshelf.", libroElegido.VolumeInfo.Title))
-}*/
-
-// dentro de la busqueda o la recomendacion de google books -> ver de si queremos agregar  a favoritos o a por leer

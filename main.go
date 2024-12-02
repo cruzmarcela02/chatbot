@@ -46,17 +46,19 @@ func (b *Bot) manejarComando(id int64, msg string) { // maneja los comandos hist
 	b.Recomendacion = false
 	b.filtroGLobal = false
 	enGoogleBooks := b.autenticado && b.ultimoComando == GOOGLEBOOKS
+	filtrosGlobales, _ := formatearFiltros(id)
 
 	switch msg {
 	case RECOMENDACION:
 		b.Recomendacion = true
 		b.Recomendar(id, enGoogleBooks)
-
 	case BUSQUEDA:
 		if b.autenticado && b.ultimoComando == GOOGLEBOOKS {
 			b.API.Send(crearMenu(BUSQUEDA, id, true))
 		} else {
+			b.sendText(id, "filtros globales aplicados: "+filtrosGlobales)
 			b.API.Send(CrearMenuFiltros(id))
+
 		}
 	case HISTORIAL:
 		b.MostrarMenuHistorial(id, enGoogleBooks)
@@ -70,6 +72,7 @@ func (b *Bot) manejarComando(id int64, msg string) { // maneja los comandos hist
 	case PERSONALIZACION:
 		b.API.Send(crearMenu(PERSONALIZACION, id, false))
 		b.filtroGLobal = true
+		b.sendText(id, "filtros globales aplicados: "+filtrosGlobales)
 	default:
 		b.API.Send(crearMenu(START, id, false))
 		// informar que boton se toco
@@ -99,8 +102,13 @@ func (b *Bot) onUpdateReceived(update tgbotapi.Update) { // lee los mensajes
 	}
 
 	if msg.Text == ELIMINAR_FILTROS {
-		eliminarFiltrosBD(id)
-		b.sendText(id, "Todos sus filtros globales han sido eliminados")
+		err := eliminarFiltrosBD(id)
+		if err != nil {
+			b.sendText(id, "Error al eliminar los filtros globales")
+		}
+		removerMenu := RemoverMenu(msg.Chat.ID, "Todos sus filtros globales han sido eliminados")
+		b.API.Send(removerMenu)
+		return
 	}
 
 	if msg.Text == RECOMENDACIONES || msg.Text == BUSQUEDAS {
@@ -172,8 +180,6 @@ func (b *Bot) onCallbackQuery(update tgbotapi.Update) {
 
 	if callback != nil {
 		data := callback.Data
-
-		b.sendText(callback.Message.Chat.ID, "Se ha seleccionado: "+data)
 		if data == RECOMENDACION || data == BUSQUEDA || data == HISTORIAL || data == GOOGLEBOOKS || data == PERSONALIZACION { // lo dejamos o lo hacemos menu adentro del teclado
 			b.manejarComando(update.CallbackQuery.Message.Chat.ID, update.CallbackQuery.Data)
 		}

@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"strings"
 
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
 )
@@ -45,7 +46,29 @@ func (b *Bot) BusquedaFiltroGlobal(msg *tgbotapi.Message) {
 		return
 	}
 	b.filtro += filtrosGlobales + " "
-	b.sendText(msg.Chat.ID, "Sus filtros globales van a ser aplicados "+b.filtro)
-	b.sendText(msg.Chat.ID, "El ultimo comando fue "+b.ultimoComando)
 	b.API.Send(crearMenu(BUSQUEDA, msg.Chat.ID, false))
+}
+
+func formatearFiltros(id int64) (string, error) {
+	filtrosGlobales, err := obtenerFiltroGlobal(id)
+	if err != nil && err.Error() == "la tabla no existe o el filtro está vacío" {
+		return "ninguno", nil
+	}
+	parts := strings.Split(filtrosGlobales, "  ")
+
+	var result strings.Builder
+	for _, part := range parts {
+		if strings.HasPrefix(part, "inauthor:") {
+			value := strings.TrimPrefix(part, "inauthor:")
+			result.WriteString("autor: " + strings.Trim(value, `"`) + "\n")
+		} else if strings.HasPrefix(part, "subject:") {
+			value := strings.TrimPrefix(part, "subject:")
+			result.WriteString("genero: " + strings.Trim(value, `"`) + "\n")
+		} else if strings.HasPrefix(part, "inpublisher:") {
+			value := strings.TrimPrefix(part, "inpublisher:")
+			result.WriteString("editorial: " + strings.Trim(value, `"`) + "\n")
+		}
+	}
+
+	return result.String(), nil
 }

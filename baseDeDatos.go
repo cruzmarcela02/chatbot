@@ -64,14 +64,27 @@ func (b *Bot) getSavedSearchResults(id int64) ([]BookBD, error) {
 	return books, nil
 }
 
-func guardarFiltroGlobal(id int64, filtro string) error {
+func guardarFiltroGlobal(id int64, nuevoFiltro string) error {
 	client, err := initializeFirebase()
 	if err != nil {
 		return err
 	}
 
 	ref := client.NewRef(fmt.Sprintf("filtros/%d", id))
-	err = ref.Set(context.Background(), filtro)
+	var filtrosExistentes string
+	if err := ref.Get(context.Background(), &filtrosExistentes); err != nil {
+		return fmt.Errorf("error  %v", err)
+	}
+
+	if filtrosExistentes != "" {
+		filtrosExistentes += " " + nuevoFiltro
+	} else {
+		filtrosExistentes = nuevoFiltro
+	}
+
+	if err := ref.Set(context.Background(), filtrosExistentes); err != nil {
+		return fmt.Errorf("error : %v", err)
+	}
 	return nil
 }
 
@@ -100,8 +113,11 @@ func eliminarFiltrosBD(id int64) error {
 	}
 
 	ref := client.NewRef(fmt.Sprintf("filtros/%d", id))
-	err = ref.Delete(context.Background())
-	return err
+	if err := ref.Delete(context.Background()); err != nil {
+		return fmt.Errorf("error deleting filtros: %v", err)
+	}
+
+	return nil
 }
 
 func (b *Bot) obtenerRecomendaciones(id int64) ([]BookBD, error) {
