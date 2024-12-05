@@ -112,15 +112,11 @@ func (b *Bot) onUpdateReceived(update tgbotapi.Update) { // lee los mensajes
 	}
 
 	if msg.Text == RECOMENDACIONES || msg.Text == BUSQUEDAS {
-		removerMenu := RemoverMenu(id, "Queres ver el historial: "+msg.Text)
-		b.API.Send(removerMenu)
 		b.verHistorial(msg, msg.Text, false)
 		return
 	}
 
 	if msg.Text == LEIDOS || msg.Text == VISTOS_RECIENTES {
-		removerMenu := RemoverMenu(id, "Queres ver el historial: "+msg.Text)
-		b.API.Send(removerMenu)
 		b.verHistorial(msg, msg.Text, true)
 		return
 	}

@@ -6,7 +6,7 @@ var (
 	MenuStart         = "Bienvenido a tu bot literario."
 	MenuBusqueda      = "Bajo que parametro deseas buscar?"
 	MenuRecomendacion = "Recomendacion"
-	MenuHistorial     = "Historial"
+	MenuHistorial     = "Buenas! Seleccionaste /historial\n📚Por favor elegi que historial queres ver"
 	MenuGoogleBooks   = "Bienvenido a tu Google Books"
 	MenuAgregar       = "¿Deseas agregar el libro a alguna estanteria?"
 	MenuPersonalizar  = "Seleccione alguno de los filtros. Estos filtros globales se aplicaran a sus busquedas y recomendaciones que no sean dentro de " + GOOGLEBOOKS + " si asi lo desea."

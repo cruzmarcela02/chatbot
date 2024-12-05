@@ -2,9 +2,10 @@ package main
 
 import (
 	"context"
-	"firebase.google.com/go"
-	"firebase.google.com/go/db"
 	"fmt"
+
+	firebase "firebase.google.com/go"
+	"firebase.google.com/go/db"
 	"google.golang.org/api/option"
 )
 
@@ -44,6 +45,7 @@ func (b *Bot) saveSearchResult(book BookBD, id int64) error {
 
 	return nil
 }
+
 func (b *Bot) getSavedSearchResults(id int64) ([]BookBD, error) {
 	client, err := initializeFirebase()
 	if err != nil {
@@ -150,4 +152,38 @@ func (b *Bot) guardarRecomendaciones(book BookBD, id int64) error {
 	}
 
 	return nil
+}
+
+/* Guarda los libros de Vistos Recientes en googlebooks */
+func GuardarVistosRecientesGB(book string, id int64) error {
+	client, err := initializeFirebase()
+	if err != nil {
+		return err
+	}
+
+	ref := client.NewRef(fmt.Sprintf("vistosRecientes/%d", id))
+	if _, err := ref.Push(context.Background(), book); err != nil {
+		return fmt.Errorf("error saving search result: %v", err)
+	}
+
+	return nil
+}
+
+/* Obtiene los libros de Vistos Recientes en googlebooks */
+func ObtenerVistosRecientesGB(id int64) ([]BookBD, error) {
+	client, err := initializeFirebase()
+	if err != nil {
+	}
+
+	ref := client.NewRef(fmt.Sprintf("vistosRecientes/%d", id))
+	var vistosRecientesMap map[string]BookBD
+	if err := ref.Get(context.Background(), &vistosRecientesMap); err != nil {
+		return nil, fmt.Errorf("error retrieving vistosRecientes: %v", err)
+	}
+
+	var vistosRecientes []BookBD
+	for _, vistoReciente := range vistosRecientesMap {
+		vistosRecientes = append(vistosRecientes, vistoReciente)
+	}
+	return vistosRecientes, nil
 }

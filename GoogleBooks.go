@@ -90,22 +90,23 @@ func (b *Bot) agregarLibro(id int64, estanteria string) {
 	recuperarLibro := service.Mylibrary.Bookshelves.Volumes.List(COD_LEIDOS).MaxResults(1)
 	llamado, _ := recuperarLibro.Do()
 	libro := llamado.Items[0]
+	//downloadLink := conseguirLink(libro)
 
 	if estanteria == FAVORITOS {
 		favoritos := service.Mylibrary.Bookshelves.AddVolume(COD_FAVORITOS, libro.Id)
 		favoritos.Do()
+		GuardarVistosRecientesGB(libro.VolumeInfo.Title, id)
 		b.sendText(id, fmt.Sprintf("El libro '%s' ha sido agregado a tus favoritos.", libro.VolumeInfo.Title))
-
 	} else if estanteria == POR_LEER {
 		porLeer := service.Mylibrary.Bookshelves.AddVolume(COD_LEER, libro.Id)
 		porLeer.Do()
+		GuardarVistosRecientesGB(libro.VolumeInfo.Title, id)
 		b.sendText(id, fmt.Sprintf("El libro '%s' ha sido agregado a tus libros por leer.", libro.VolumeInfo.Title))
-
 	} else if estanteria == LEYENDO_AHORA {
 		leyendo := service.Mylibrary.Bookshelves.AddVolume(COD_LEYENDO, libro.Id)
 		leyendo.Do()
+		GuardarVistosRecientesGB(libro.VolumeInfo.Title, id)
 		b.sendText(id, fmt.Sprintf("El libro '%s' ha sido agregado a tus libros que estas leyendo.", libro.VolumeInfo.Title))
-
 	} else {
 		b.sendText(id, "No se agregara el libro a ninguna de esas estanterias")
 	}

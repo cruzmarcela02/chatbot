@@ -2,7 +2,6 @@ package main
 
 import (
 	"context"
-	"fmt"
 	"strconv"
 
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
@@ -17,8 +16,6 @@ func (b *Bot) MostrarMenuHistorial(id int64, enGoogleBooks bool) {
 		b.API.Send(crearMenu(HISTORIAL, id, enGoogleBooks))
 		return
 	}
-
-	b.sendText(id, "Historial comun")
 	b.API.Send(crearMenu(HISTORIAL, id, enGoogleBooks))
 }
 
@@ -38,16 +35,17 @@ func (b *Bot) mostrarHistorialGoogleBooks(id int64, estanteria string) {
 	service := autenticarCliente(b, id, token)
 
 	if estanteria == VISTOS_RECIENTES {
+		removerMenu := RemoverMenu(id, "Uff...  A ver qué libros estuviste viendo recientemente 👀. Te tiro una lista con los nombres, fijate si queres buscarlos!")
+		b.API.Send(removerMenu)
 		historial := armarHistorialGoogleBooks(COD_VISTOS_RECIENTES, service)
-		b.sendText(id, "Historial de tus vistos recientes")
 		b.sendText(id, historial)
-
-	} else {
-		historial := armarHistorialGoogleBooks(COD_LEIDOS, service)
-		b.sendText(id, "Historial de tus leidos")
-		b.sendText(id, historial)
-
+		return
 	}
+
+	removerMenu := RemoverMenu(id, "Dale, repasaremos los libros leidos hasta ahora 📘✅")
+	b.API.Send(removerMenu)
+	historial := armarHistorialGoogleBooks(COD_LEIDOS, service)
+	b.sendText(id, historial)
 }
 
 func autenticarCliente(b *Bot, id int64, token *oauth2.Token) *books.Service {
@@ -74,10 +72,9 @@ func armarHistorialGoogleBooks(cod_estanteria string, service *books.Service) st
 		historial = "Estanteria vacia"
 		return historial
 	}
-
+	emojis := []string{"1️⃣ ", "2️⃣ ", "3️⃣ ", "4️⃣ ", "5️⃣ ", "6️⃣ ", "7️⃣ ", "8️⃣ ", "9️⃣ ", "🔟 "}
 	for i, libro := range bookshelf.Items {
-		historial += strconv.Itoa(i + 1)
-		historial += ". "
+		historial += emojis[i]
 		historial += libro.VolumeInfo.Title
 		historial += "\n"
 	}
@@ -88,17 +85,30 @@ func armarHistorialGoogleBooks(cod_estanteria string, service *books.Service) st
 // Historial del chat. Fuera de google books
 func (b *Bot) armarHistorial(msg *tgbotapi.Message, filtro string) {
 	if filtro == RECOMENDACIONES {
-		b.sendText(msg.Chat.ID, "Historial de tus recomendaciones")
+		removerMenu := RemoverMenu(msg.Chat.ID, "Okey! Veamos tus libros recomendados 📚\nTe mostraré tus últimas 10 recomendaciones 📋")
+		b.API.Send(removerMenu)
 		recomendaciones, err := b.obtenerRecomendaciones(msg.Chat.ID)
 		if err != nil {
 
 		}
 		for i, recomendacion := range recomendaciones {
-			b.sendText(msg.Chat.ID, fmt.Sprintf("%d. Titulo:%s\n Link:%s ", i+1, recomendacion.Title, recomendacion.Link))
+			if i > 9 {
+				break
+			}
+
+			var mensaje string
+			mensaje += strconv.Itoa(i + 1)
+			mensaje += ". Titulo: "
+			mensaje += recomendacion.Title
+			mensaje += "\nLink: "
+			mensaje += recomendacion.Link
+			b.sendText(msg.Chat.ID, mensaje)
 		}
 		return
 	}
-	b.sendText(msg.Chat.ID, "Historial de tus busquedas")
+
+	removerMenu := RemoverMenu(msg.Chat.ID, "¿Asi que quéres ver tus busquedas 🔎🤔? \nTe mostraré tus últimas 10 busquedas 😉")
+	b.API.Send(removerMenu)
 
 	books, err := b.getSavedSearchResults(msg.Chat.ID)
 	if err != nil {
@@ -111,8 +121,18 @@ func (b *Bot) armarHistorial(msg *tgbotapi.Message, filtro string) {
 		return
 	}
 
-	b.sendText(msg.Chat.ID, "Historial de búsquedas:")
 	for i, book := range books {
-		b.sendText(msg.Chat.ID, fmt.Sprintf("%d. Titulo:%s , Link:%s ", i+1, book.Title, book.Link))
+		if i > 9 {
+			break
+		}
+
+		var mensaje string
+		mensaje += strconv.Itoa(i + 1)
+		mensaje += ". Titulo: "
+		mensaje += book.Title
+		mensaje += "\nLink: "
+		mensaje += book.Link
+
+		b.sendText(msg.Chat.ID, mensaje)
 	}
 }
