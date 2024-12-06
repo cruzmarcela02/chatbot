@@ -52,31 +52,31 @@ func (b *Bot) manejarComando(id int64, msg string) { // maneja los comandos hist
 	switch msg {
 	case RECOMENDACION:
 		b.Recomendacion = true
-		b.Recomendar(id, enGoogleBooks)
+		b.API.Send(CrearMenuFiltros(id))
+		b.sendText(id, "Tus filtros globales actuales son: "+filtrosGlobales)
 	case BUSQUEDA:
 		if b.autenticado && b.ultimoComando == GOOGLEBOOKS {
-			b.API.Send(crearMenu(BUSQUEDA, id, true))
+			b.API.Send(crearMenu(BUSQUEDA, id))
 		} else {
-			b.sendText(id, "filtros globales aplicados: "+filtrosGlobales)
+			b.sendText(id, "Tus filtros globales actuales son: "+filtrosGlobales)
 			b.API.Send(CrearMenuFiltros(id))
 
 		}
 	case HISTORIAL:
-		b.MostrarMenuHistorial(id, enGoogleBooks)
+		b.DarHistorial(id, enGoogleBooks)
 
 	case GOOGLEBOOKS:
 		b.interactuarGoogleBooks(id)
 
 	case INFORME:
-		b.API.Send(crearMenu(INFORME, id, false))
+		b.API.Send(crearMenu(INFORME, id))
 
 	case PERSONALIZACION:
-		b.API.Send(crearMenu(PERSONALIZACION, id, false))
+		b.API.Send(crearMenu(PERSONALIZACION, id))
 		b.filtroGLobal = true
 		b.sendText(id, "filtros globales aplicados: "+filtrosGlobales)
 	default:
-		b.API.Send(crearMenu(START, id, false))
-		// informar que boton se toco
+		b.API.Send(crearMenu(START, id))
 	}
 }
 
@@ -102,8 +102,12 @@ func (b *Bot) onUpdateReceived(update tgbotapi.Update) { // lee los mensajes
 	}
 
 	if msg.Text == BUSQUEDA_PERSONALIZADA {
+		if b.Recomendacion {
+			b.API.Send(crearMenu(RECOMENDACION, id))
+			return
+		}
 		b.sendText(id, "No se aplicaran sus filtros globales")
-		b.API.Send(crearMenu(BUSQUEDA, id, false))
+		b.API.Send(crearMenu(BUSQUEDA, id))
 		return
 	}
 
@@ -118,23 +122,19 @@ func (b *Bot) onUpdateReceived(update tgbotapi.Update) { // lee los mensajes
 	}
 
 	if msg.Text == RECOMENDACIONES || msg.Text == BUSQUEDAS {
-		b.verHistorial(msg, msg.Text, false)
-		return
-	}
-
-	if msg.Text == LEIDOS || msg.Text == VISTOS_RECIENTES {
-		b.verHistorial(msg, msg.Text, true)
+		b.armarHistorial(msg, msg.Text)
 		return
 	}
 
 	if msg.Text == TERMINAR {
-		if !b.registroFiltros(id, msg.Text) {
-			// Caso de marcar TERMINAR sin agregar ningun filtro
+		if !b.registroFiltros(id, msg.Text) && !b.filtroGLobal {
+			b.obtenerLibroRandom(id, "subject:Novel")
 			return
 		}
 
 		if b.filtroGLobal {
 			guardarFiltroGlobal(id, b.filtro)
+
 		} else {
 			b.realizarquery(msg)
 		}
@@ -184,8 +184,19 @@ func (b *Bot) onCallbackQuery(update tgbotapi.Update) {
 		if data == RECOMENDACION || data == BUSQUEDA || data == HISTORIAL || data == GOOGLEBOOKS || data == PERSONALIZACION { // lo dejamos o lo hacemos menu adentro del teclado
 			b.manejarComando(update.CallbackQuery.Message.Chat.ID, update.CallbackQuery.Data)
 		}
+
 		if data == GOOGLEBOOKS {
 			b.ultimoComando = GOOGLEBOOKS
+		}
+
+		if data == PARA_TI {
+			b.recomendarParaTi(update.CallbackQuery.Message.Chat.ID)
+			return
+		}
+
+		if data == LEIDOSH {
+			b.mostrarHistorialGoogleBooks(update.CallbackQuery.Message.Chat.ID)
+			return
 		}
 
 	}

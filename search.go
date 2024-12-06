@@ -32,8 +32,20 @@ func (b *Bot) obtenerLibroRandom(id int64, filtro string) {
 		b.sendText(id, "Error al buscar libros: "+err.Error())
 		return
 	}
+
 	if len(resp.Items) == 0 {
 		b.sendText(id, "No se encontraron libros.")
+		return
+	}
+
+	if b.Recomendacion {
+		for i := 0; i < 3; i++ {
+			random := rand.Intn(10)
+			book := resp.Items[random]
+			downloadLink := conseguirLink(book)
+			titulo := book.VolumeInfo.Title
+			b.sendText(id, fmt.Sprintf("%d. El libro es %s.\nDescargalo en %s", i+1, titulo, downloadLink))
+		}
 		return
 	}
 	book := resp.Items[randomNumber]
@@ -97,8 +109,7 @@ func (b *Bot) realizarquery(msg *tgbotapi.Message) {
 
 	if b.Recomendacion {
 		if b.autenticado && b.ultimoComando == GOOGLEBOOKS {
-			token, _ := b.obtenerTokenAlmacenado(msg.Chat.ID)
-			b.recomendarParaTi(msg.Chat.ID, token)
+			b.recomendarParaTi(msg.Chat.ID)
 			b.ultimoComando = RECOMENDACION
 		} else {
 			b.recomendarLibros(msg, b.filtro)

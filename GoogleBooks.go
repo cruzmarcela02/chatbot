@@ -9,20 +9,20 @@ import (
 )
 
 const (
-	COD_FAVORITOS        = "0"
-	COD_LEER             = "2"
-	COD_LEYENDO          = "3"
-	COD_LEIDOS           = "4"
-	COD_VISTOS_RECIENTES = "6"
-	COD_PARA_TI          = "8"
+	COD_FAVORITOS = "0"
+	COD_LEER      = "2"
+	COD_LEYENDO   = "3"
+	COD_LEIDOS    = "4"
+	COD_PARA_TI   = "8"
 
-	FAVORITOS        = "Favoritos"
-	POR_LEER         = "Por Leer"
-	LEYENDO_AHORA    = "Leyendo Ahora"
-	LEIDOS           = "Leidos"
-	LEIDOSB          = "leidos"
-	VISTOS_RECIENTES = "Vistos Recientes"
-	NO_AGREGAR       = "No agregar"
+	FAVORITOS     = "Favoritos"
+	POR_LEER      = "Por Leer"
+	LEYENDO_AHORA = "Leyendo Ahora"
+	LEIDOS        = "Leidos"
+	LEIDOSB       = "leidos"
+	LEIDOSH       = "Historial de leidos"
+	PARA_TI       = "Para ti"
+	NO_AGREGAR    = "No agregar"
 )
 
 func (b *Bot) interactuarGoogleBooks(id int64) {
@@ -32,7 +32,7 @@ func (b *Bot) interactuarGoogleBooks(id int64) {
 		b.GoogleBooksAuth(id)
 	} else {
 		b.autenticado = true
-		b.API.Send(crearMenu(GOOGLEBOOKS, id, false))
+		b.API.Send(crearMenu(GOOGLEBOOKS, id))
 	}
 
 }
@@ -108,5 +108,4 @@ func (b *Bot) agregarLibro(id int64, estanteria string) {
 
 	removerMenu := RemoverMenu(id, mensaje)
 	b.API.Send(removerMenu)
-	GuardarVistosRecientesGB(libro.VolumeInfo.Title, id)
 }

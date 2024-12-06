@@ -19,9 +19,11 @@ var (
 	googlebooks     = "Googlebooks"
 	informe         = "Informe"
 	personalización = "Personalización"
+	paraTi          = "Para ti"
+	leidos          = "Leidos"
 )
 
-func crearMenu(comando string, id int64, enGoogleBooks bool) tgbotapi.MessageConfig {
+func crearMenu(comando string, id int64) tgbotapi.MessageConfig {
 
 	switch comando {
 	case START:
@@ -29,7 +31,7 @@ func crearMenu(comando string, id int64, enGoogleBooks bool) tgbotapi.MessageCon
 	case RECOMENDACION:
 		return CrearMenuRecomendar(id)
 	case HISTORIAL:
-		return CrearMenuHistorial(id, enGoogleBooks)
+		return CrearMenuHistorial(id)
 	case GOOGLEBOOKS:
 		return CrearMenuGoogleBooks(id)
 	case PERSONALIZACION:
@@ -90,32 +92,12 @@ func CrearMenuRecomendar(id int64) tgbotapi.MessageConfig {
 	return recomendar
 }
 
-func CrearMenuHistorial(id int64, enGoogleBooks bool) tgbotapi.MessageConfig {
-	if enGoogleBooks {
-		return CrearMenuHistorialGoogleBooks(id)
-	}
-
-	return CrearMenuHistorialComun(id)
-}
-
-func CrearMenuHistorialComun(id int64) tgbotapi.MessageConfig {
+func CrearMenuHistorial(id int64) tgbotapi.MessageConfig {
 	menuHistorial := tgbotapi.NewMessage(id, MenuHistorial)
 	menuHistorial.ReplyMarkup = tgbotapi.NewReplyKeyboard(
 		tgbotapi.NewKeyboardButtonRow(
 			tgbotapi.NewKeyboardButton(BUSQUEDAS),
 			tgbotapi.NewKeyboardButton(RECOMENDACIONES),
-		),
-	)
-
-	return menuHistorial
-}
-
-func CrearMenuHistorialGoogleBooks(id int64) tgbotapi.MessageConfig {
-	menuHistorial := tgbotapi.NewMessage(id, MenuHistorial)
-	menuHistorial.ReplyMarkup = tgbotapi.NewReplyKeyboard(
-		tgbotapi.NewKeyboardButtonRow(
-			tgbotapi.NewKeyboardButton(VISTOS_RECIENTES),
-			tgbotapi.NewKeyboardButton(LEIDOS),
 		),
 	)
 
@@ -132,9 +114,9 @@ func CrearMenuGoogleBooks(id int64) tgbotapi.MessageConfig {
 	menuGoogleBooks := tgbotapi.NewMessage(id, MenuGoogleBooks)
 	menuGoogleBooks.ReplyMarkup = tgbotapi.NewInlineKeyboardMarkup(
 		tgbotapi.NewInlineKeyboardRow(
-			tgbotapi.NewInlineKeyboardButtonData(recomendacion, RECOMENDACION),
+			tgbotapi.NewInlineKeyboardButtonData(paraTi, PARA_TI),
 			tgbotapi.NewInlineKeyboardButtonData(busqueda, BUSQUEDA),
-			tgbotapi.NewInlineKeyboardButtonData(historial, HISTORIAL),
+			tgbotapi.NewInlineKeyboardButtonData(leidos, LEIDOSH),
 		),
 	)
 	return menuGoogleBooks

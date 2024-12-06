@@ -26,15 +26,20 @@ func (b *Bot) verificarFiltro(msg *tgbotapi.Message, filtro string) {
 }
 
 func (b *Bot) registroFiltros(id int64, mensaje string) bool {
-	if !b.filwait && b.filtro == "" {
-		removerMenu := RemoverMenu(id, "Upss no ingresate ningun filtro😵\nIgualmente te recomiendo este libro")
+	if b.filtroGLobal && !b.filwait {
+		removerMenu := RemoverMenu(id, "No aplicaste ningun filtro global")
 		b.API.Send(removerMenu)
-		b.ultimoComando = mensaje
-		b.buscarSinAuth(id, "subject:Novel")
 		return false
 	}
 
-	removerMenu := RemoverMenu(id, "El ingreso de tus filtros fue un exito!\nVeamos que encontramos con tus filtros ingresados🤔")
+	if !b.filwait && b.filtro == "" {
+		removerMenu := RemoverMenu(id, "Upss no ingresate ningun filtro😵\nIgualmente te recomiendo libros de mi genero favorito, las Novelas 🥰")
+		b.API.Send(removerMenu)
+		b.ultimoComando = mensaje
+		return false
+	}
+
+	removerMenu := RemoverMenu(id, "El ingreso de tus filtros fue un exito!\n Esperamos usarlo proximamente")
 	b.API.Send(removerMenu)
 	return true
 }
@@ -47,7 +52,12 @@ func (b *Bot) BusquedaFiltroGlobal(msg *tgbotapi.Message) {
 		return
 	}
 	b.filtro += filtrosGlobales + " "
-	b.API.Send(crearMenu(BUSQUEDA, msg.Chat.ID, false))
+
+	if b.Recomendacion {
+		b.API.Send(crearMenu(RECOMENDACION, msg.Chat.ID))
+		return
+	}
+	b.API.Send(crearMenu(BUSQUEDA, msg.Chat.ID))
 }
 
 func formatearFiltros(id int64) (string, error) {

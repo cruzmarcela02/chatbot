@@ -8,22 +8,12 @@ import (
 	"time"
 
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
-	"golang.org/x/oauth2"
 	"google.golang.org/api/books/v1"
 )
 
-func (b *Bot) Recomendar(id int64, enGoogleBooks bool) {
-	if enGoogleBooks {
-		token, _ := b.obtenerTokenAlmacenado(id)
-		b.recomendarParaTi(id, token)
-		return
-	}
-
-	b.API.Send(crearMenu(RECOMENDACION, id, enGoogleBooks))
-}
-
 /* Recomendados de la estanteria 'Para ti' de GoogleBooks */
-func (b *Bot) recomendarParaTi(id int64, token *oauth2.Token) {
+func (b *Bot) recomendarParaTi(id int64) {
+	token, _ := b.obtenerTokenAlmacenado(id)
 	client := b.OAuthConfig.Client(context.Background(), token)
 	service, err := books.New(client)
 	if err != nil {
@@ -80,17 +70,15 @@ func (b *Bot) recomendarLibros(msg *tgbotapi.Message, filtro string) {
 
 	cantidad := 0
 
-
 	for _, libro := range resp.Items {
 		titulo := libro.VolumeInfo.Title
 		if cantidad >= 3 {
 			break
 		}
+
 		if _, existe := titulosVistos[titulo]; existe {
-			// Si el título ya fue recomendado, se ignora
 			continue
 		}
-
 
 		titulosVistos[titulo] = true
 
@@ -113,8 +101,8 @@ func (b *Bot) recomendarLibros(msg *tgbotapi.Message, filtro string) {
 			Link:    downloadLink,
 			Periodo: time.Now(),
 		}
+
 		cantidad++
 		b.guardarRecomendaciones(BookBD, msg.Chat.ID)
 	}
-
 }

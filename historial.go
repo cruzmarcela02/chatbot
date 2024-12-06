@@ -10,41 +10,22 @@ import (
 )
 
 /* Envia las opciones de historiales posibles */
-func (b *Bot) MostrarMenuHistorial(id int64, enGoogleBooks bool) {
+func (b *Bot) DarHistorial(id int64, enGoogleBooks bool) {
 	if enGoogleBooks {
-		b.sendText(id, "Historial para gbooks")
-		b.API.Send(crearMenu(HISTORIAL, id, enGoogleBooks))
+		b.mostrarHistorialGoogleBooks(id)
 		return
 	}
-	b.API.Send(crearMenu(HISTORIAL, id, enGoogleBooks))
+	b.API.Send(crearMenu(HISTORIAL, id))
 }
 
-/* Muestra el historial del usuario, gb o chat */
-func (b *Bot) verHistorial(msg *tgbotapi.Message, filtro string, enGoogleBooks bool) {
-	if enGoogleBooks {
-		b.mostrarHistorialGoogleBooks(msg.Chat.ID, filtro)
-		return
-	}
-
-	b.armarHistorial(msg, filtro)
-}
-
-/* Historiales - GoogleBooks: Vistos Recientes o Leidos */
-func (b *Bot) mostrarHistorialGoogleBooks(id int64, estanteria string) {
+/* Historiales - GoogleBooks: Leidos */
+func (b *Bot) mostrarHistorialGoogleBooks(id int64) {
 	token, _ := b.obtenerTokenAlmacenado(id)
 	service := autenticarCliente(b, id, token)
 
-	if estanteria == VISTOS_RECIENTES {
-		removerMenu := RemoverMenu(id, "Uff...  A ver qué libros estuviste viendo recientemente 👀. Te tiro una lista con los nombres, fijate si queres buscarlos!")
-		b.API.Send(removerMenu)
-		historial := armarHistorialGoogleBooks(COD_VISTOS_RECIENTES, service)
-		b.sendText(id, historial)
-		return
-	}
-
 	removerMenu := RemoverMenu(id, "Dale, repasaremos los libros leidos hasta ahora 📘✅")
 	b.API.Send(removerMenu)
-	historial := armarHistorialGoogleBooks(COD_LEIDOS, service)
+	historial := armarHistorialGoogleBooks(service)
 	b.sendText(id, historial)
 }
 
@@ -59,17 +40,17 @@ func autenticarCliente(b *Bot, id int64, token *oauth2.Token) *books.Service {
 }
 
 /* Retorna un string con el historial armado */
-func armarHistorialGoogleBooks(cod_estanteria string, service *books.Service) string {
+func armarHistorialGoogleBooks(service *books.Service) string {
 	var historial string
 
-	bookshelf, err := service.Mylibrary.Bookshelves.Volumes.List(cod_estanteria).Do()
+	bookshelf, err := service.Mylibrary.Bookshelves.Volumes.List(COD_LEIDOS).Do()
 	if err != nil {
 		historial = "SURGIO UN ERROR: " + err.Error()
 		return historial
 	}
 
 	if len(bookshelf.Items) == 0 {
-		historial = "Estanteria vacia"
+		historial = "Upss, la estanteria esta vacia. No leiste nada aun"
 		return historial
 	}
 	emojis := []string{"1️⃣ ", "2️⃣ ", "3️⃣ ", "4️⃣ ", "5️⃣ ", "6️⃣ ", "7️⃣ ", "8️⃣ ", "9️⃣ ", "🔟 "}
