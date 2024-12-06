@@ -61,7 +61,7 @@ func (b *Bot) recomendarLibros(msg *tgbotapi.Message, filtro string) {
 		b.sendText(msg.Chat.ID, "Error al crear el cliente de Google Books: "+err.Error())
 		return
 	}
-	call := service.Volumes.List(filtro).MaxResults(3)
+	call := service.Volumes.List(filtro).MaxResults(10)
 	resp, err := call.Do()
 
 	if err != nil {
@@ -76,23 +76,44 @@ func (b *Bot) recomendarLibros(msg *tgbotapi.Message, filtro string) {
 
 	b.sendText(msg.Chat.ID, "Te recomendamos los siguientes libros: ")
 
-	for i, libro := range resp.Items {
+	titulosVistos := make(map[string]bool)
+
+	cantidad := 0
+
+
+	for _, libro := range resp.Items {
+		titulo := libro.VolumeInfo.Title
+		if cantidad >= 3 {
+			break
+		}
+		if _, existe := titulosVistos[titulo]; existe {
+			// Si el título ya fue recomendado, se ignora
+			continue
+		}
+
+
+		titulosVistos[titulo] = true
+
 		var recomendacion string
-		recomendacion += strconv.Itoa(i + 1)
+		recomendacion += strconv.Itoa(cantidad + 1)
 		recomendacion += ". "
 		recomendacion += libro.VolumeInfo.Title
 		recomendacion += "\n"
-		recomendacion += libro.VolumeInfo.Description
-		recomendacion += "\n"
-		recomendacion += libro.VolumeInfo.InfoLink
+
+		if libro.VolumeInfo.Description != "" {
+			recomendacion += libro.VolumeInfo.Description
+			recomendacion += "\n"
+		}
+		downloadLink := conseguirLink(libro)
+		recomendacion += downloadLink
 
 		b.sendText(msg.Chat.ID, recomendacion)
-		downloadLink := conseguirLink(libro)
 		BookBD := BookBD{
 			Title:   libro.VolumeInfo.Title,
 			Link:    downloadLink,
 			Periodo: time.Now(),
 		}
+		cantidad++
 		b.guardarRecomendaciones(BookBD, msg.Chat.ID)
 	}
 
