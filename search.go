@@ -2,11 +2,12 @@ package main
 
 import (
 	"fmt"
-	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
-	"google.golang.org/api/books/v1"
 	"math/rand"
 	"net/http"
 	"time"
+
+	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
+	"google.golang.org/api/books/v1"
 )
 
 const (
@@ -38,7 +39,7 @@ func (b *Bot) obtenerLibroRandom(id int64, filtro string) {
 	book := resp.Items[randomNumber]
 	downloadLink := conseguirLink(book)
 	titulo := book.VolumeInfo.Title
-	b.sendText(id, fmt.Sprintf("El libro es %s.Descargalo en %s", titulo, downloadLink))
+	b.sendText(id, fmt.Sprintf("El libro es %s.\nDescargalo en %s", titulo, downloadLink))
 }
 
 func (b *Bot) buscarSinAuth(id int64, filtro string) {

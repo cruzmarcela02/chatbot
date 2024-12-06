@@ -12,7 +12,7 @@ const (
 	DIARIO  = "Ultimo dia"
 )
 
-func consguirLibros(conjuntolibros map[string]BookBD, periodo time.Time) []BookBD {
+func conseguirLibros(conjuntolibros map[string]BookBD, periodo time.Time) []BookBD {
 	var libros []BookBD
 	for _, query := range conjuntolibros {
 		if query.Periodo.After(periodo) {
@@ -44,16 +44,16 @@ func (b *Bot) generarAnalisis(id int64, periodo string) {
 
 	switch periodo {
 	case MENSUAL:
-		busquedas = consguirLibros(booksBusqueda, time.Now().AddDate(0, -1, 0))
-		recomendaciones = consguirLibros(booksRecomendacion, time.Now().AddDate(0, -1, 0))
+		busquedas = conseguirLibros(booksBusqueda, time.Now().AddDate(0, -1, 0))
+		recomendaciones = conseguirLibros(booksRecomendacion, time.Now().AddDate(0, -1, 0))
+
 	case SEMANAL:
-		// Obtener las recomendaciones y busquedas de la ultima semana
-		busquedas = consguirLibros(booksBusqueda, time.Now().AddDate(0, 0, -7))
-		recomendaciones = consguirLibros(booksRecomendacion, time.Now().AddDate(0, 0, -7))
+		busquedas = conseguirLibros(booksBusqueda, time.Now().AddDate(0, 0, -7))
+		recomendaciones = conseguirLibros(booksRecomendacion, time.Now().AddDate(0, 0, -7))
+
 	case DIARIO:
-		// Obtener las recomendaciones y busquedas del ultimo dia
-		busquedas = consguirLibros(booksBusqueda, time.Now().AddDate(0, 0, -1))
-		recomendaciones = consguirLibros(booksRecomendacion, time.Now().AddDate(0, 0, -1))
+		busquedas = conseguirLibros(booksBusqueda, time.Now().AddDate(0, 0, -1))
+		recomendaciones = conseguirLibros(booksRecomendacion, time.Now().AddDate(0, 0, -1))
 	}
 
 	// Mostrar los libros
@@ -61,11 +61,12 @@ func (b *Bot) generarAnalisis(id int64, periodo string) {
 	for i, libro := range busquedas {
 		mensaje += fmt.Sprintf("%d. %s\n", i+1, libro.Title)
 	}
-	b.sendText(id, "Tus busquedas en el periodo indicado son las siguientes\n"+mensaje)
+	b.sendText(id, "Mira, acá te dejo el informe de tus busquedas del periodo seleccionado ⤵️\n"+mensaje)
+
 	mensaje = ""
 	for i, libro := range recomendaciones {
 		mensaje += fmt.Sprintf("%d. %s\n", i+1, libro.Title)
 	}
-	b.sendText(id, "Tus recomendaciones en el periodo indicado son las siguientes\n"+mensaje)
-	b.API.Send(RemoverMenu(id, "Espero que te haya sido de ayuda!"))
+	b.sendText(id, "Y aca ⬇️ te dejo el de recomendaciones\n"+mensaje)
+	b.sendText(id, "Espero que te haya sido de ayuda 🙏!")
 }

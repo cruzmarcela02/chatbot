@@ -34,9 +34,11 @@ func (b *Bot) recomendarParaTi(id int64, token *oauth2.Token) {
 	bookShelves, _ := service.Mylibrary.Bookshelves.Volumes.List(COD_PARA_TI).Do()
 
 	if len(bookShelves.Items) == 0 {
-		b.sendText(id, "No hay libros para recomendar")
+		b.sendText(id, "Ups, no hay recomendaciones para vos 😧😧!\n Te recomiendo interactuar un poco mas en con /googlebooks asi podemos descubrir un poco mas tus gustos ✨")
 		return
 	}
+
+	b.sendText(id, "Veamos que te puedo recomendar de la estanteria Para Ti 📚")
 
 	for i, item := range bookShelves.Items {
 		var recomendacion string

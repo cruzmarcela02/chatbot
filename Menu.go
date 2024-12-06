@@ -5,7 +5,7 @@ import tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
 var (
 	MenuStart         = "Bienvenido a tu bot literario."
 	MenuBusqueda      = "Bajo que parametro deseas buscar?"
-	MenuRecomendacion = "Recomendacion"
+	MenuRecomendacion = "Veo que buscas una /recomendacion, elegi algunos filtros para ver que puedo recomendarte"
 	MenuHistorial     = "Buenas! Seleccionaste /historial\n📚Por favor elegi que historial queres ver"
 	MenuGoogleBooks   = "Bienvenido a tu Google Books"
 	MenuAgregar       = "¿Deseas agregar el libro a alguna estanteria?"

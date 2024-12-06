@@ -34,7 +34,7 @@ func (b *Bot) registroFiltros(id int64, mensaje string) bool {
 		return false
 	}
 
-	removerMenu := RemoverMenu(id, "Filtros ingresados con exito.")
+	removerMenu := RemoverMenu(id, "El ingreso de tus filtros fue un exito!\nVeamos que encontramos con tus filtros ingresados🤔")
 	b.API.Send(removerMenu)
 	return true
 }
@@ -56,7 +56,6 @@ func formatearFiltros(id int64) (string, error) {
 		return "ninguno", nil
 	}
 	parts := strings.Split(filtrosGlobales, "  ")
-	fmt.Sprintf("Filtros globales: %s", parts)
 
 	var result strings.Builder
 	for _, part := range parts {

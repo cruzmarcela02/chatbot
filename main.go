@@ -112,7 +112,7 @@ func (b *Bot) onUpdateReceived(update tgbotapi.Update) { // lee los mensajes
 		if err != nil {
 			b.sendText(id, "Error al eliminar los filtros globales")
 		}
-		removerMenu := RemoverMenu(msg.Chat.ID, "Todos sus filtros globales han sido eliminados")
+		removerMenu := RemoverMenu(msg.Chat.ID, "🧹Has eliminado todos tus filtros globales")
 		b.API.Send(removerMenu)
 		return
 	}
@@ -132,6 +132,7 @@ func (b *Bot) onUpdateReceived(update tgbotapi.Update) { // lee los mensajes
 			// Caso de marcar TERMINAR sin agregar ningun filtro
 			return
 		}
+
 		if b.filtroGLobal {
 			guardarFiltroGlobal(id, b.filtro)
 		} else {
@@ -142,7 +143,6 @@ func (b *Bot) onUpdateReceived(update tgbotapi.Update) { // lee los mensajes
 
 	if msg.Text == AUTOR || msg.Text == EDITORIAL || msg.Text == GENERO || msg.Text == TITULO {
 		if !b.filwait {
-			b.sendText(msg.Chat.ID, "Si no desea agregar otro filtro toque el boton cancelar, en caso contrario toque el boton de filtro")
 			b.filwait = true
 		}
 		b.verificarFiltro(msg, msg.Text)
@@ -150,14 +150,13 @@ func (b *Bot) onUpdateReceived(update tgbotapi.Update) { // lee los mensajes
 	}
 
 	if (msg.Text == FAVORITOS || msg.Text == POR_LEER || msg.Text == LEYENDO_AHORA || msg.Text == NO_AGREGAR || msg.Text == LEIDOSB) && b.autenticado {
-		removerMenu := RemoverMenu(msg.Chat.ID, "Su opereacion se realizo con exito")
-		b.API.Send(removerMenu)
 		b.agregarLibro(msg.Chat.ID, msg.Text)
 		return
 	}
 
 	if b.filwait {
 		b.filtro += "\"" + msg.Text + "\""
+		b.sendText(msg.Chat.ID, "¿Querés agregar otro filtro? ➡️ Agregalo\nSi no es así, apreta Terminar ✅")
 		return
 	} else {
 		b.sendText(msg.Chat.ID, "No se reconoce el comando, usar alguno de los comandos del menu"+msg.Text)

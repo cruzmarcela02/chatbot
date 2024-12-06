@@ -79,28 +79,34 @@ func (b *Bot) agregarLibro(id int64, estanteria string) {
 		b.sendText(id, "Error al obtener el token almacenado: "+err.Error())
 		return
 	}
+
 	client := b.OAuthConfig.Client(context.Background(), token)
 	service, _ := books.New(client)
 	libro := b.bufferLibro
 
-	if estanteria == FAVORITOS {
-		favoritos := service.Mylibrary.Bookshelves.AddVolume(COD_FAVORITOS, libro.Id)
-		favoritos.Do()
-		b.sendText(id, fmt.Sprintf("%s esta en tus Favoritos, fijate si luego le pegas una releida 👀.", libro.VolumeInfo.Title))
-	} else if estanteria == POR_LEER {
-		porLeer := service.Mylibrary.Bookshelves.AddVolume(COD_LEER, libro.Id)
-		porLeer.Do()
-		b.sendText(id, fmt.Sprintf("Uh ahora %s esta en Por Leer! no cuelgues y leelo 🤨😒.", libro.VolumeInfo.Title))
-	} else if estanteria == LEYENDO_AHORA {
-		leyendo := service.Mylibrary.Bookshelves.AddVolume(COD_LEYENDO, libro.Id)
-		leyendo.Do()
-		b.sendText(id, fmt.Sprintf("Asi que estas Leyendo %s😦??\n Si te llega a gustar muchos fijate de agregarlo a favoritos mas tarde 😌", libro.VolumeInfo.Title))
-	} else if estanteria == LEIDOSB {
-		leidos := service.Mylibrary.Bookshelves.AddVolume(COD_LEIDOS, libro.Id)
-		leidos.Do()
-		b.sendText(id, fmt.Sprintf("Genial! Agregaste %s a tu coleccion de Leidos a la coleccion 🤓", libro.VolumeInfo.Title))
-	} else {
-		b.sendText(id, "No se agregara el libro a ninguna de esas estanterias")
+	var mensaje string
+	switch estanteria {
+	case FAVORITOS:
+		service.Mylibrary.Bookshelves.AddVolume(COD_FAVORITOS, libro.Id).Do()
+		mensaje = fmt.Sprintf("%s esta en tus Favoritos, fijate si luego le pegas una releida 👀.", libro.VolumeInfo.Title)
+
+	case POR_LEER:
+		service.Mylibrary.Bookshelves.AddVolume(COD_LEER, libro.Id).Do()
+		mensaje = fmt.Sprintf("Uh ahora %s esta en Por Leer! no cuelgues y leelo 🤨😒.", libro.VolumeInfo.Title)
+
+	case LEYENDO_AHORA:
+		service.Mylibrary.Bookshelves.AddVolume(COD_LEYENDO, libro.Id).Do()
+		mensaje = fmt.Sprintf("Asi que estas Leyendo %s 😦??\n Si te llega a gustar muchos fijate de agregarlo a favoritos mas tarde 😌", libro.VolumeInfo.Title)
+
+	case LEIDOSB:
+		service.Mylibrary.Bookshelves.AddVolume(COD_LEIDOS, libro.Id).Do()
+		mensaje = fmt.Sprintf("Genial! Agregaste %s a tu coleccion de Leidos a la coleccion 🤓", libro.VolumeInfo.Title)
+
+	default:
+		mensaje = "Decidiste no agregar el libro a ninguna de las estanterias"
 	}
+
+	removerMenu := RemoverMenu(id, mensaje)
+	b.API.Send(removerMenu)
 	GuardarVistosRecientesGB(libro.VolumeInfo.Title, id)
 }
