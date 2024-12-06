@@ -2,10 +2,11 @@ package main
 
 import (
 	"fmt"
-	"net/http"
-
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
 	"google.golang.org/api/books/v1"
+	"math/rand"
+	"net/http"
+	"time"
 )
 
 const (
@@ -14,6 +15,31 @@ const (
 	FEDITORIAL = "inpublisher:"
 	FGENERO    = "subject:"
 )
+
+func (b *Bot) obtenerLibroRandom(id int64, filtro string) {
+	client := &http.Client{}
+	service, err := books.New(client)
+	if err != nil {
+		return
+	}
+
+	// longitud random
+	randomNumber := rand.Intn(10)
+	call := service.Volumes.List(filtro).MaxResults(10)
+	resp, err := call.Do()
+	if err != nil {
+		b.sendText(id, "Error al buscar libros: "+err.Error())
+		return
+	}
+	if len(resp.Items) == 0 {
+		b.sendText(id, "No se encontraron libros.")
+		return
+	}
+	book := resp.Items[randomNumber]
+	downloadLink := conseguirLink(book)
+	titulo := book.VolumeInfo.Title
+	b.sendText(id, fmt.Sprintf("El libro es %s.Descargalo en %s", titulo, downloadLink))
+}
 
 func (b *Bot) buscarSinAuth(id int64, filtro string) {
 
@@ -48,38 +74,15 @@ func (b *Bot) buscarSinAuth(id int64, filtro string) {
 
 	b.sendText(id, fmt.Sprintf("El libro encontrado es %s.Descargalo en %s", titulo, downloadLink))
 	BookBD := BookBD{
-		Title: titulo,
-		Link:  downloadLink,
+		Title:   titulo,
+		Link:    downloadLink,
+		Periodo: time.Now(),
 	}
 	b.saveSearchResult(BookBD, id)
 
 }
 
 func conseguirLink(firstBook *books.Volume) string {
-	/*
-		if firstBook.AccessInfo.Epub.IsAvailable != false {
-
-			if firstBook.AccessInfo.Epub.DownloadLink != "" {
-				// Get the file as epub
-				return firstBook.AccessInfo.Epub.DownloadLink
-			} else {
-				return firstBook.AccessInfo.Epub.AcsTokenLink
-			}
-
-		} else if firstBook.AccessInfo.Pdf.IsAvailable != false {
-
-			if firstBook.AccessInfo.Pdf.DownloadLink != "" {
-				// Get the file as pdf
-				return firstBook.AccessInfo.Pdf.DownloadLink
-			} else {
-				return firstBook.AccessInfo.Pdf.AcsTokenLink
-			}
-
-		} else {
-			return firstBook.VolumeInfo.PreviewLink
-
-		}*/
-
 	if firstBook.AccessInfo.Epub.IsAvailable && firstBook.AccessInfo.Epub.DownloadLink != "" {
 		return firstBook.AccessInfo.Epub.DownloadLink
 	}

@@ -27,9 +27,10 @@ func (b *Bot) verificarFiltro(msg *tgbotapi.Message, filtro string) {
 
 func (b *Bot) registroFiltros(id int64, mensaje string) bool {
 	if !b.filwait && b.filtro == "" {
-		removerMenu := RemoverMenu(id, "Se cancelo el proceso")
+		removerMenu := RemoverMenu(id, "Upss no ingresate ningun filtro😵\nIgualmente te recomiendo este libro")
 		b.API.Send(removerMenu)
 		b.ultimoComando = mensaje
+		b.buscarSinAuth(id, "subject:Novel")
 		return false
 	}
 
@@ -55,6 +56,7 @@ func formatearFiltros(id int64) (string, error) {
 		return "ninguno", nil
 	}
 	parts := strings.Split(filtrosGlobales, "  ")
+	fmt.Sprintf("Filtros globales: %s", parts)
 
 	var result strings.Builder
 	for _, part := range parts {

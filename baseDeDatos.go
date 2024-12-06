@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"fmt"
+	"time"
 
 	firebase "firebase.google.com/go"
 	"firebase.google.com/go/db"
@@ -10,8 +11,9 @@ import (
 )
 
 type BookBD struct {
-	Title string `json:"title"`
-	Link  string `json:"link"`
+	Title   string    `json:"title"`
+	Link    string    `json:"link"`
+	Periodo time.Time `json:"periodo"`
 }
 
 func initializeFirebase() (*db.Client, error) {
@@ -161,7 +163,7 @@ func GuardarVistosRecientesGB(book string, id int64) error {
 		return err
 	}
 
-	ref := client.NewRef(fmt.Sprintf("vistosRecientes/%d", id))
+	ref := client.NewRef(fmt.Sprintf("vistosRecientesGB/%d", id))
 	if _, err := ref.Push(context.Background(), book); err != nil {
 		return fmt.Errorf("error saving search result: %v", err)
 	}
@@ -175,7 +177,7 @@ func ObtenerVistosRecientesGB(id int64) ([]BookBD, error) {
 	if err != nil {
 	}
 
-	ref := client.NewRef(fmt.Sprintf("vistosRecientes/%d", id))
+	ref := client.NewRef(fmt.Sprintf("vistosRecientesGB/%d", id))
 	var vistosRecientesMap map[string]BookBD
 	if err := ref.Get(context.Background(), &vistosRecientesMap); err != nil {
 		return nil, fmt.Errorf("error retrieving vistosRecientes: %v", err)

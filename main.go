@@ -17,7 +17,7 @@ const (
 	BUSQUEDA               = "/busqueda"
 	HISTORIAL              = "/historial"
 	GOOGLEBOOKS            = "/gbooks"
-	INFORME                = "/analisisbusqueda"
+	INFORME                = "/informe"
 	PERSONALIZACION        = "/personalizar"
 	TITULO                 = "Titulo"
 	AUTOR                  = "Autor"
@@ -40,6 +40,7 @@ type Bot struct {
 	autenticado   bool
 	filtroGLobal  bool
 	ultimoComando string
+	bufferLibro   *books.Volume
 }
 
 func (b *Bot) manejarComando(id int64, msg string) { // maneja los comandos historial, personalizacion e informe
@@ -67,7 +68,7 @@ func (b *Bot) manejarComando(id int64, msg string) { // maneja los comandos hist
 		b.interactuarGoogleBooks(id)
 
 	case INFORME:
-		// realizar informe con todas las busquedas y las recomendaciones del ultimo mes
+		b.API.Send(crearMenu(INFORME, id, false))
 
 	case PERSONALIZACION:
 		b.API.Send(crearMenu(PERSONALIZACION, id, false))
@@ -87,6 +88,11 @@ func (b *Bot) onUpdateReceived(update tgbotapi.Update) { // lee los mensajes
 	if msg.IsCommand() {
 		b.manejarComando(id, msg.Text)
 		b.ultimoComando = msg.Text
+		return
+	}
+
+	if msg.Text == MENSUAL || msg.Text == SEMANAL || msg.Text == DIARIO {
+		b.generarAnalisis(id, msg.Text)
 		return
 	}
 
@@ -143,7 +149,7 @@ func (b *Bot) onUpdateReceived(update tgbotapi.Update) { // lee los mensajes
 		return
 	}
 
-	if (msg.Text == FAVORITOS || msg.Text == POR_LEER || msg.Text == LEYENDO_AHORA || msg.Text == NO_AGREGAR) && b.autenticado {
+	if (msg.Text == FAVORITOS || msg.Text == POR_LEER || msg.Text == LEYENDO_AHORA || msg.Text == NO_AGREGAR || msg.Text == LEIDOSB) && b.autenticado {
 		removerMenu := RemoverMenu(msg.Chat.ID, "Su opereacion se realizo con exito")
 		b.API.Send(removerMenu)
 		b.agregarLibro(msg.Chat.ID, msg.Text)
@@ -151,7 +157,7 @@ func (b *Bot) onUpdateReceived(update tgbotapi.Update) { // lee los mensajes
 	}
 
 	if b.filwait {
-		b.filtro += "\"" + msg.Text + "\" "
+		b.filtro += "\"" + msg.Text + "\""
 		return
 	} else {
 		b.sendText(msg.Chat.ID, "No se reconoce el comando, usar alguno de los comandos del menu"+msg.Text)

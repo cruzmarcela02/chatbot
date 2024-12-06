@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"strconv"
 	"strings"
+	"time"
 
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
 	"golang.org/x/oauth2"
@@ -86,8 +87,9 @@ func (b *Bot) recomendarLibros(msg *tgbotapi.Message, filtro string) {
 		b.sendText(msg.Chat.ID, recomendacion)
 		downloadLink := conseguirLink(libro)
 		BookBD := BookBD{
-			Title: libro.VolumeInfo.Title,
-			Link:  downloadLink,
+			Title:   libro.VolumeInfo.Title,
+			Link:    downloadLink,
+			Periodo: time.Now(),
 		}
 		b.guardarRecomendaciones(BookBD, msg.Chat.ID)
 	}

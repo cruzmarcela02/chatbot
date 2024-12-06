@@ -11,6 +11,7 @@ var (
 	MenuAgregar       = "¿Deseas agregar el libro a alguna estanteria?"
 	MenuPersonalizar  = "Seleccione alguno de los filtros. Estos filtros globales se aplicaran a sus busquedas y recomendaciones que no sean dentro de " + GOOGLEBOOKS + " si asi lo desea."
 	menuFiltros       = "¿Que tipo de query desea realizar?"
+	menuInforme       = "Buenas! Seleccionaste /informe\n 📋Pero necesito que me indiques de cuál periodo lo queres"
 	// Button texts
 	recomendacion   = "Recomendacion"
 	busqueda        = "Busqueda"
@@ -33,6 +34,8 @@ func crearMenu(comando string, id int64, enGoogleBooks bool) tgbotapi.MessageCon
 		return CrearMenuGoogleBooks(id)
 	case PERSONALIZACION:
 		return CrearMenuPersonalizacion(id)
+	case INFORME:
+		return CrearMenuInforme(id)
 	default:
 		return CrearMenuBusqueda(id)
 	}
@@ -144,6 +147,9 @@ func CrearMenuAgregar(id int64) tgbotapi.MessageConfig {
 			tgbotapi.NewKeyboardButton(FAVORITOS),
 			tgbotapi.NewKeyboardButton(POR_LEER),
 			tgbotapi.NewKeyboardButton(LEYENDO_AHORA),
+		),
+		tgbotapi.NewKeyboardButtonRow(
+			tgbotapi.NewKeyboardButton(LEIDOSB),
 			tgbotapi.NewKeyboardButton(NO_AGREGAR),
 		),
 	)
@@ -175,4 +181,17 @@ func CrearMenuFiltros(id int64) tgbotapi.MessageConfig {
 		),
 	)
 	return tipoBusqueda
+}
+
+func CrearMenuInforme(id int64) tgbotapi.MessageConfig {
+	analisis := tgbotapi.NewMessage(id, menuInforme)
+	analisis.ReplyMarkup = tgbotapi.NewReplyKeyboard(
+		tgbotapi.NewKeyboardButtonRow(
+			tgbotapi.NewKeyboardButton(MENSUAL),
+			tgbotapi.NewKeyboardButton(SEMANAL),
+			tgbotapi.NewKeyboardButton(DIARIO),
+		),
+	)
+
+	return analisis
 }
