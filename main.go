@@ -4,6 +4,7 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"sync"
 
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
 	"golang.org/x/oauth2"
@@ -42,6 +43,11 @@ type Bot struct {
 	ultimoComando string
 	bufferLibro   *books.Volume
 }
+
+var chatsConcurrencia = struct {
+	sync.RWMutex
+	m map[int64]chan tgbotapi.Update
+}{m: make(map[int64]chan tgbotapi.Update)}
 
 func (b *Bot) manejarComando(id int64, msg string) { // maneja los comandos historial, personalizacion e informe
 	b.Recomendacion = false
@@ -202,6 +208,17 @@ func (b *Bot) onCallbackQuery(update tgbotapi.Update) {
 	}
 }
 
+func (b *Bot) manejarActualizaciones(updates chan tgbotapi.Update) {
+	for update := range updates {
+		if update.Message != nil {
+			b.onUpdateReceived(update)
+		}
+		if update.CallbackQuery != nil {
+			b.onCallbackQuery(update)
+		}
+	}
+}
+
 func main() {
 	bot, err := tgbotapi.NewBotAPI("8040461009:AAGk-uZFfkIR5-mX5OI7XmNVIlwJseS6iPE")
 	if err != nil {
@@ -236,12 +253,15 @@ func main() {
 
 	for update := range updates {
 
-		if update.Message != nil {
-			b.onUpdateReceived(update)
+		chatID := update.Message.Chat.ID
+		chatsConcurrencia.Lock()
+		if _, ok := chatsConcurrencia.m[chatID]; !ok {
+			chatsConcurrencia.m[chatID] = make(chan tgbotapi.Update)
+			go b.manejarActualizaciones(chatsConcurrencia.m[chatID])
 		}
-		if update.CallbackQuery != nil {
-			b.onCallbackQuery(update)
-		}
-
+		chatsConcurrencia.Unlock()
+		chatsConcurrencia.RLock()
+		chatsConcurrencia.m[chatID] <- update
+		chatsConcurrencia.RUnlock()
 	}
 }

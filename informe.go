@@ -68,5 +68,5 @@ func (b *Bot) generarAnalisis(id int64, periodo string) {
 		mensaje += fmt.Sprintf("%d. %s\n", i+1, libro.Title)
 	}
 	b.sendText(id, "Y aca ⬇️ te dejo el de recomendaciones\n"+mensaje)
-	b.sendText(id, "Espero que te haya sido de ayuda 🙏!")
+	b.API.Send(RemoverMenu(id, "Espero que te haya sido de ayuda 🙏!"))
 }
