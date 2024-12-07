@@ -184,7 +184,6 @@ func (b *Bot) sendText(who int64, what string) error {
 
 func (b *Bot) onCallbackQuery(update tgbotapi.Update) {
 	callback := update.CallbackQuery
-
 	if callback != nil {
 		data := callback.Data
 		if data == RECOMENDACION || data == BUSQUEDA || data == HISTORIAL || data == GOOGLEBOOKS || data == PERSONALIZACION { // lo dejamos o lo hacemos menu adentro del teclado
@@ -204,7 +203,7 @@ func (b *Bot) onCallbackQuery(update tgbotapi.Update) {
 			b.mostrarHistorialGoogleBooks(update.CallbackQuery.Message.Chat.ID)
 			return
 		}
-
+		log.Printf("Unknown callback data: %s", data) //
 	}
 }
 
@@ -250,10 +249,16 @@ func main() {
 	go func() {
 		log.Fatal(http.ListenAndServe(":8080", nil))
 	}()
-
 	for update := range updates {
-
-		chatID := update.Message.Chat.ID
+		var chatID int64
+		if update.Message != nil {
+			chatID = update.Message.Chat.ID
+			log.Printf("Received message from %d", update.Message.Chat.ID)
+		}
+		if update.CallbackQuery != nil {
+			chatID = update.CallbackQuery.Message.Chat.ID
+			log.Printf("Received callback query from %d", update.CallbackQuery.Message.Chat.ID)
+		}
 		chatsConcurrencia.Lock()
 		if _, ok := chatsConcurrencia.m[chatID]; !ok {
 			chatsConcurrencia.m[chatID] = make(chan tgbotapi.Update)
