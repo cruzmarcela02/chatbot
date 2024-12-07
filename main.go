@@ -34,7 +34,7 @@ const (
 
 type Bot struct {
 	API           *tgbotapi.BotAPI
-	Recomendacion bool // si se toca el comando /recomendacion o si el usuario ingresa recomendaciono alguna variante
+	Recomendacion bool
 	filtro        string
 	filwait       bool
 	OAuthConfig   *oauth2.Config
@@ -49,7 +49,7 @@ var chatsConcurrencia = struct {
 	m map[int64]chan tgbotapi.Update
 }{m: make(map[int64]chan tgbotapi.Update)}
 
-func (b *Bot) manejarComando(id int64, msg string) { // maneja los comandos historial, personalizacion e informe
+func (b *Bot) manejarComando(id int64, msg string) {
 	b.Recomendacion = false
 	b.filtroGLobal = false
 	enGoogleBooks := b.autenticado && b.ultimoComando == GOOGLEBOOKS
@@ -87,7 +87,7 @@ func (b *Bot) manejarComando(id int64, msg string) { // maneja los comandos hist
 }
 
 // comandos
-func (b *Bot) onUpdateReceived(update tgbotapi.Update) { // lee los mensajes
+func (b *Bot) onUpdateReceived(update tgbotapi.Update) {
 	msg := update.Message
 	id := msg.Chat.ID
 
@@ -253,11 +253,9 @@ func main() {
 		var chatID int64
 		if update.Message != nil {
 			chatID = update.Message.Chat.ID
-			log.Printf("Received message from %d", update.Message.Chat.ID)
 		}
 		if update.CallbackQuery != nil {
 			chatID = update.CallbackQuery.Message.Chat.ID
-			log.Printf("Received callback query from %d", update.CallbackQuery.Message.Chat.ID)
 		}
 		chatsConcurrencia.Lock()
 		if _, ok := chatsConcurrencia.m[chatID]; !ok {
