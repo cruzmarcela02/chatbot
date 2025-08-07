@@ -6,6 +6,7 @@ import (
 	"os"
 	"sync"
 
+	"github.com/joho/godotenv"
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
 	"golang.org/x/oauth2"
 	"golang.org/x/oauth2/google"
@@ -219,7 +220,14 @@ func (b *Bot) manejarActualizaciones(updates chan tgbotapi.Update) {
 }
 
 func main() {
-	bot, err := tgbotapi.NewBotAPI("8040461009:AAGk-uZFfkIR5-mX5OI7XmNVIlwJseS6iPE")
+	err := godotenv.Load()
+	if err != nil {
+		log.Fatal("Error cargando archivo .env")
+	}
+
+	token := os.Getenv("TELEGRAM_BOT_TOKEN")
+	bot, err := tgbotapi.NewBotAPI(token)
+
 	if err != nil {
 		log.Panic(err)
 	}
